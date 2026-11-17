@@ -3,15 +3,28 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "files": [
+    "dist/lib"
+  ],
+  "main": "./dist/lib/index.cjs",
+  "module": "./dist/lib/index.js",
+  "types": "./dist/lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/types/index.d.ts",
+      "import": "./dist/lib/index.js",
+      "require": "./dist/lib/index.cjs"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:lib": "vite build --config vite.lib.config.ts && tsc -p tsconfig.lib.json",
+    "prepack": "pnpm build:lib",
     "preview": "vite preview"
   },
   "dependencies": {
     "@progress/jszip-esm": "^1.0.4",
-    "@univerjs-pro/license": "1.5.2",
-    "@univerjs-pro/sheets-print": "1.5.2",
     "@univerjs/core": "1.5.2",
     "@univerjs/data-validation": "^1.5.2",
     "@univerjs/design": "1.5.2",
@@ -61,6 +74,13 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "rxjs": "^7.8.2"
+  },
+  "peerDependencies": {
+    "@univerjs/core": ">=1.5.0",
+    "@univerjs/sheets": ">=1.5.0",
+    "@univerjs/ui": ">=1.5.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
     "@types/papaparse": "^5.5.2",

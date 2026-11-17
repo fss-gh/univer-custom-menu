@@ -1,8 +1,7 @@
 import { generateRandomId, getPxByEMUs, getRelationShip, getcellrange, hexToRgbArray, numberToABC } from "../common/method"
-import { LuckyChart, LuckyChartImageBase } from "./LuckyBase"
+import { ChartContext, ChartImageObject, ChartModel, ChartStyle, ChartStyleAxis, ChartStyleBase, ChartStyleLegend } from "./types"
 import { Element, IStyleCollections, ReadXml } from "./ReadXml"
 import { ChartTypeBits, LabelContentType } from "../common/constant"
-import { ILuckyChartContext, ILuckyChartStyle, ILuckyChartStyleAxis, ILuckyChartStyleBase, ILuckyChartStyleLegend } from "./ILuck"
 
 interface ChartGroup {
     chartEle: Element;
@@ -90,10 +89,13 @@ const getChartType = (readXml: ReadXml, chartFile: string) => {
         chartType
     }
 }
-export class LuckyChartImage extends LuckyChartImageBase {
+export class LuckyChartImage implements ChartImageObject {
     id: string
+    src?: string
+    type!: string
+    data!: any
+    transform?: any
     constructor(id: string, xdr_xfrm: Element, range: string, chartType: ChartTypeBits) {
-        super()
         this.id = id;
         this.type = 'chart'
         this.data = {
@@ -119,7 +121,7 @@ export class LuckyChartImage extends LuckyChartImageBase {
     }
 }
 export class ChartImageGroup {
-    chart!: LuckyChart;
+    chart!: ChartModel;
     image!: LuckyChartImage;
 
     readXml: ReadXml;
@@ -224,7 +226,14 @@ export class ChartImageGroup {
         }
     }
 }
-class Chart extends LuckyChart {
+class Chart implements ChartModel {
+    id!: string;
+    range!: string;
+    chartType!: ChartTypeBits;
+    context!: ChartContext;
+    style!: ChartStyle;
+    isRowDirection!: boolean;
+
     chartFile: string;
     readXml: ReadXml;
     styles: IStyleCollections;
@@ -237,7 +246,6 @@ class Chart extends LuckyChart {
         image: LuckyChartImage,
         styles: IStyleCollections
     }) {
-        super();
         const { id, range, chartType, chartFile, readXml, image, styles } = args;
 
         this.styles = styles;
@@ -252,7 +260,7 @@ class Chart extends LuckyChart {
         this.style = this.getStyle(image);
     }
 
-    private getStyle = (image: LuckyChartImage): ILuckyChartStyle => {
+    private getStyle = (image: LuckyChartImage): ChartStyle => {
         const bodySpPr = this.readXml.getElementsByTagNameLink('c:spPr', this.chartFile)[0];
         const fill = bodySpPr.getInnerElements('a:solidFill')?.[0];
         const ln = bodySpPr.getInnerElements('a:ln')?.[0];
@@ -381,7 +389,7 @@ class Chart extends LuckyChart {
         return baseObj
     }
 
-    private getLegend = (legend: Element): ILuckyChartStyleLegend => {
+    private getLegend = (legend: Element): ChartStyleLegend => {
         if (!legend) return {
             position: 'hide'
         };
@@ -402,7 +410,7 @@ class Chart extends LuckyChart {
         }
     }
 
-    private getAxis = (axis: Element | undefined): ILuckyChartStyleAxis | undefined => {
+    private getAxis = (axis: Element | undefined): ChartStyleAxis | undefined => {
         if (!axis) return undefined;
         const visible = !axis.getInnerElementsTagLink('c:spPr/a:ln/a:noFill')?.length
         // const visible = axis.getInnerElements('c:delete')[0]?.get('val') === '0';
@@ -512,7 +520,7 @@ class Chart extends LuckyChart {
         const solidFill = style.getInnerElements('a:solidFill')?.[0];
 
         const color = (!schemaClr && solidFill) ? this.getThemColor(solidFill) : this.getColor(schemaClr)
-        const obj: ILuckyChartStyleBase = {};
+        const obj: ChartStyleBase = {};
 
         if (style.get('sz')) {
             obj.fontSize = parseInt(style.get('sz') as string) / 100;
@@ -575,7 +583,7 @@ class Chart extends LuckyChart {
         return color
     }
 
-    private getContext = (): ILuckyChartContext => {
+    private getContext = (): ChartContext => {
         const cSer = this.readXml.getElementsByTagName('c:ser', this.chartFile);
         const indexs = cSer.map((d) => {
             const idx = d.getInnerElements('c:idx')![0];
@@ -589,7 +597,7 @@ class Chart extends LuckyChart {
         }
     }
 
-    get model(): LuckyChart {
+    get model(): ChartModel {
         return {
             id: this.id,
             range: this.range,

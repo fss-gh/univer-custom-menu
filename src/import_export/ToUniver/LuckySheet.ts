@@ -1,5 +1,5 @@
-﻿import { IluckyImageBorder, IluckyImageCrop, IluckyImageDefault, IluckyImages, IluckySheetCelldata, IluckySheetCelldataValue, IMapluckySheetborderInfoCellForImp, IluckySheetborderInfoCellValue, IluckySheetborderInfoCellValueStyle, IFormulaSI, IluckySheetRowAndColumnLen, IluckySheetRowAndColumnHidden, IluckySheetSelection, IcellOtherInfo, IformulaList, IformulaListItem, IluckysheetHyperlink, IluckysheetHyperlinkType, IluckysheetDataVerification } from "./ILuck";
-import { LuckySheetCelldata } from "./LuckyCell";
+﻿import { IluckyImageBorder, IluckyImageCrop, IluckyImageDefault, IluckyImages, IluckySheetCelldata, IluckySheetCelldataValue, IMapluckySheetborderInfoCellForImp, IluckySheetborderInfoCellValue, IluckySheetborderInfoCellValueStyle, IluckySheetborderInfoCellForImp, IFormulaSI, IluckySheetRowAndColumnLen, IluckySheetRowAndColumnHidden, IluckySheetSelection, IcellOtherInfo, IformulaList, IformulaListItem, IluckysheetHyperlink, IluckysheetHyperlinkType, IluckysheetDataVerification } from "./types";
+import { UniverCell } from "./UniverCell";
 import { IattributeList } from "../ICommon";
 import { getXmlAttibute, getColumnWidthPixel, fromulaRef, getRowHeightPixel, getcellrange, generateRandomIndex, getPxByEMUs, getMultiSequenceToNum, getTransR1C1ToSequence, getPeelOffX14, getMultiFormulaValue } from "../common/method";
 import { borderTypes, COMMON_TYPE2, DATA_VERIFICATION_MAP, DATA_VERIFICATION_TYPE2_MAP, worksheetFilePath } from "../common/constant";
@@ -516,7 +516,7 @@ export class LuckySheet extends LuckySheetBase {
                 for (let key in cells) {
                     let cell = cells[key];
                     const cellSize = this.getCellSize(cell);
-                    let cellValue = new LuckySheetCelldata(
+                    let cellValue = new UniverCell(
                         cell,
                         cellSize,
                         this.styles,
@@ -531,7 +531,7 @@ export class LuckySheet extends LuckySheetBase {
                         if (this.config.borderInfo == null) {
                             this.config.borderInfo = [];
                         }
-                        this.config.borderInfo.push(cellValue._borderObject);
+                        this.config.borderInfo.push(cellValue._borderObject as unknown as IluckySheetborderInfoCellForImp);
                         delete cellValue._borderObject;
                     }
 

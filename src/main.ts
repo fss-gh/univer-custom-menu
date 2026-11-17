@@ -92,6 +92,7 @@ import { UniverSheetsUIPlugin } from "@univerjs/sheets-ui";
 import { UniverUIPlugin } from "@univerjs/ui";
 // 自定义插件
 import { UniverSheetsCustomMenuPlugin } from "./plugin";
+import { UniverSheetsImportExportPlugin, UniverSheetsSuperSubscriptPlugin } from "./index";
 import { FUniver } from '@univerjs/core/facade';
 //引入Facade API 实现
 import '@univerjs/ui/facade'
@@ -103,9 +104,6 @@ import '@univerjs/sheets/facade'
  */
 import { zhCN, enUS } from './locales'
 import CustomSaveMenu from "./plugin/controllers/menu/save.menu";
-import CustomImportMenu from "./plugin/controllers/menu/import.menu";
-import CustomExportMenu from "./plugin/controllers/menu/export.menu";
-import CustomSingleButtonMenu from "./plugin/controllers/menu/single-button.menu";
 import { CustomDropdownListMenu } from "./plugin/controllers/menu/dropdown-list.menu";
 
 
@@ -116,11 +114,6 @@ const univer = new Univer({
     [LocaleType.ZH_CN]: zhCN,
     [LocaleType.EN_US]: enUS,
   },
-});
-
-univer.registerPlugin(UniverLicensePlugin, {
-  license: `1846850823316525117-1-eyJpIjoiMTg0Njg1MDgyMzMxNjUyNTExNyIsInYiOiIxIiwicCI6IkVFNTRrV0NxRkdUOUNWcEJsK2ZNWnBpekgxQ3pDV2dzWEMyKzB1c3RRRFk9IiwiZG0iOlsiKi51bml2ZXIuYWkiLCIqLnVuaXZlci5wbHVzIl0sInJ0IjozLCJmdCI6eyJ1ZiI6eyJtdSI6MjE0NzQ4MzY0NiwiZXQiOjE3Njc4ODc5OTksIm1tIjoyMTQ3NDgzNjQ2LCJjdSI6MjE0NzQ4MzY0Nn0sInNmIjp7ImV0IjoxNzY3ODg3OTk5LCJydiI6dHJ1ZSwicHRuIjoyMTQ3NDgzNjQ2LCJtaXMiOjIxNDc0ODM2NDYsIm1wbiI6MjE0NzQ4MzY0NiwibmMiOjIxNDc0ODM2NDZ9LCJkZiI6eyJldCI6MTc2Nzg4Nzk5OSwicnYiOnRydWUsIm1pcyI6MjE0NzQ4MzY0NiwibXBuIjoyMTQ3NDgzNjQ2fSwid3NmIjp7ImV0IjoxNzY3ODg3OTk5LCJobiI6MjE0NzQ4MzY0Nn19LCJ1ZCI6MTc2Nzg4Nzk5OSwiYXQiOjE3MzYzMzA2ODYsImUiOiJkZXZlbG9wZXJAdW5pdmVyLmFpIiwiZCI6OCwibiI6MTUyfQ==-bjVjDKN3EaHAvf4ySUFxnjHsXiKnk1RSiiOD7RaeXkXRHheSdiMjfctXscfYQxJdleRIA9hSSlc4TO9Ncy/qCQ==-1767887999`
-  //license:'123'
 });
 
 univer.registerPlugin(UniverRenderEnginePlugin);
@@ -182,7 +175,6 @@ univer.registerPlugin(UniverSheetsTableUIPlugin)
 
 univer.registerPlugin(UniverSheetsCrosshairHighlightPlugin)
 
-univer.registerPlugin(UniverSheetsPrintPlugin) 
 // univer.registerPlugin(UniverWatermarkPlugin, {
 //   textWatermarkSettings: {
 //     content: 'Hello, Univer!',
@@ -199,7 +191,38 @@ const getUniverSnapshot = () => {
   // 返回 IWorkbookData 快照，供导出/保存逻辑使用
   return activeWorkbook.save();
 };
-// custom menu plugin
+// 导入/导出专用插件
+univer.registerPlugin(UniverSheetsImportExportPlugin, {
+  import: {
+    before: () => {
+      // loading.value = true;
+    },
+    after: () => {
+      // loading.value = false;
+      // if (error) {
+      //   message.error(error.message || '导入失败');
+      //   return;
+      // }
+      // message.success('导入成功');
+    },
+  },
+  export: {
+    snapshot: getUniverSnapshot,
+    after: () => {
+      // loading.value = false;
+      // if (res) {
+      //   message.error(res.message || '导出失败');
+      // } else {
+      //   message.success('导出成功');
+      // }
+    },
+  },
+});
+
+// 上下标插件（上标 + 下标）
+univer.registerPlugin(UniverSheetsSuperSubscriptPlugin, {});
+
+// 其余自定义菜单（保存/下拉列表）
 univer.registerPlugin(UniverSheetsCustomMenuPlugin, {
   instance: univer,
   menu: [
@@ -209,31 +232,6 @@ univer.registerPlugin(UniverSheetsCustomMenuPlugin, {
         console.log(saveData);
       },
     }),
-    CustomImportMenu({
-      before: () => {
-        // loading.value = true;
-      },
-      after: () => {
-        // loading.value = false;
-        // if (error) {
-        //   message.error(error.message || '导入失败');
-        //   return;
-        // }
-        // message.success('导入成功');
-      },
-    }),
-    CustomExportMenu({
-      snapshot: getUniverSnapshot,
-      after: () => {
-        // loading.value = false;
-        // if (res) {
-        //   message.error(res.message || '导出失败');
-        // } else {
-        //   message.success('导出成功');
-        // }
-      },
-    }),
-    CustomSingleButtonMenu(),
     CustomDropdownListMenu(),
   ],
 });

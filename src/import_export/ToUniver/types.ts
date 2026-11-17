@@ -1,4 +1,291 @@
-import { ChartTypeBits } from "../common/constant";
+import { ChartTypeBits } from '../common/constant';
+
+/**
+ * 单元格样式中间值（仅在解析过程中使用，最终会转成 Univer IStyleData）
+ */
+export interface CellFormat {
+    fa: string;
+    t: string;
+    s?: Array<CellStyleValue | InlineString>;
+    ci?: any;
+}
+
+export interface InlineString {
+    ff?: string;
+    fc?: string;
+    fs?: number;
+    cl?: number;
+    un?: number;
+    bl?: number;
+    it?: number;
+    va?: number;
+    v?: string;
+}
+
+export interface CellStyleValue {
+    ct?: CellFormat;
+    bg?: string;
+    ff?: string;
+    fc?: string;
+    bl?: number;
+    it?: number;
+    fs?: number;
+    cl?: number;
+    un?: number;
+    vt?: number;
+    ht?: number;
+    mc?: any;
+    tr?: number;
+    tb?: number;
+    v?: string;
+    m?: string;
+    rt?: number;
+    f?: string;
+    va?: number;
+    qp?: number;
+    ti?: number;
+}
+
+export interface BorderStyleValue {
+    style: number;
+    color: string;
+}
+
+export interface BorderCellValue {
+    row_index?: number;
+    col_index?: number;
+    l?: BorderStyleValue;
+    r?: BorderStyleValue;
+    t?: BorderStyleValue;
+    b?: BorderStyleValue;
+    tl_br?: BorderStyleValue;
+    bl_tr?: BorderStyleValue;
+}
+
+export interface BorderCellForImp {
+    rangeType: string;
+    value?: BorderCellValue;
+}
+
+export interface RowAndColumnLen {
+    [index: string]: number;
+}
+
+export interface RowAndColumnHidden {
+    [index: string]: number;
+}
+
+export interface CellRange {
+    r: number;
+    c: number;
+    v?: CellStyleValue | string | null;
+}
+
+export interface FormulaRefValue {
+    t: string;
+    ref: string | null;
+    si: string;
+    fv?: string;
+    cellValue: CellRange;
+}
+
+export interface FormulaRefList {
+    [index: string]: FormulaRefListValue;
+}
+
+export interface FormulaRefListValue {
+    mainRef?: FormulaRefValue;
+    [key: string]: FormulaRefValue | FormulaRefListValue | string | null | undefined;
+}
+
+export interface FormulaListItem {
+    r: number;
+    c: number;
+}
+
+export interface FrozenData {
+    horizen: number | undefined;
+    vertical: number | undefined;
+}
+
+/** 图片对象（导入过程中使用，最终转成 Univer SHEET_DRAWING_PLUGIN 资源） */
+export interface ImageBorder {
+    color: string;
+    radius: number;
+    style: string;
+    width: number;
+}
+
+export interface ImageCrop {
+    height: number;
+    offsetLeft: number;
+    offsetTop: number;
+    width: number;
+}
+
+export interface ImageDefault {
+    height: number;
+    left: number;
+    top: number;
+    width: number;
+}
+
+export interface ImageObject {
+    id?: string;
+    src?: string;
+    type?: string;
+
+    fromCol?: number;
+    fromColOff?: number;
+    fromRow?: number;
+    fromRowOff?: number;
+
+    toCol?: number;
+    toColOff?: number;
+    toRow?: number;
+    toRowOff?: number;
+
+    originWidth?: number;
+    originHeight?: number;
+
+    isFixedPos?: boolean;
+    fixedLeft?: number;
+    fixedTop?: number;
+
+    border?: ImageBorder;
+    crop?: ImageCrop;
+    default?: ImageDefault;
+    transform?: any;
+    data?: any;
+
+    [key: string]: any;
+}
+
+export interface ImagesMap {
+    [index: string]: ImageObject;
+}
+
+export interface ChartImageData {
+    border: string;
+    background: string;
+    range: string;
+    chartType: ChartTypeBits;
+    isRowDirection: boolean;
+}
+
+export interface ChartImageObject extends ImageObject {
+    data: ChartImageData;
+}
+
+/** 图表对象 */
+export interface ChartContext {
+    categoryIndex: number;
+    seriesIndexes: number[];
+}
+
+export interface ChartStyleBase {
+    color?: string;
+    fontSize?: number;
+    bold?: boolean;
+    italic?: boolean;
+}
+
+export interface ChartStyleTitle extends ChartStyleBase {
+    content: string;
+}
+
+export interface ChartStyleTitles {
+    titlePosition?: 'top' | 'bottom' | 'left' | 'right' | 'hide';
+    [key: string]: ChartStyleTitle | string | undefined | null | any;
+}
+
+export interface ChartStyleAxisLabel extends ChartStyleBase {
+    axisTitleAlign: 'start' | 'center' | 'end';
+    rotate: number;
+}
+
+export interface ChartStyleAxis {
+    label: ChartStyleAxisLabel;
+    reverse: boolean;
+    lineVisible: boolean;
+    gridLine: {
+        visible: boolean;
+        width: number | undefined;
+        color: string | undefined;
+    };
+    tick: {
+        visible: boolean;
+        position: 'inside' | 'outside';
+        length?: number;
+        lineWidth?: number;
+    };
+    min: number | undefined;
+    max: number | undefined;
+}
+
+export interface ChartStyleBorder {
+    dashType: 'solid' | 'dotted' | 'dashed';
+    width: number;
+    opacity: number;
+    color: string;
+}
+
+export interface ChartStyleSeries {
+    border?: ChartStyleBorder;
+    label?: {
+        visible?: boolean;
+    };
+    fillOpacity?: number;
+}
+
+export interface ChartStyleSerieStyle {
+    border?: ChartStyleBorder;
+    rightYAxis?: boolean;
+    label: {
+        visible: boolean;
+        position: 'inside' | 'outside';
+        contentType: number;
+    } & ChartStyleBase;
+}
+
+export interface ChartStyleSerieStyles {
+    [key: string]: ChartStyleSerieStyle;
+}
+
+export interface ChartStyleLegend {
+    position: 'top' | 'bottom' | 'left' | 'right' | 'hide';
+    selectMode?: 'single' | 'multiple' | 'close';
+    label?: ChartStyleBase;
+}
+
+export interface ChartStyle {
+    titles: ChartStyleTitles;
+    runtime: any;
+    width: number;
+    height: number;
+    backgroundColor?: string;
+    borderColor?: string;
+    xAxis?: ChartStyleAxis;
+    yAxis?: ChartStyleAxis;
+    allSeriesStyle?: ChartStyleSeries;
+    seriesStyleMap?: ChartStyleSerieStyles;
+    legend?: ChartStyleLegend;
+    gradientFill?: boolean;
+}
+
+export interface ChartModel {
+    id: string;
+    range: string;
+    chartType: ChartTypeBits;
+    context: ChartContext;
+    style: ChartStyle;
+    isRowDirection: boolean;
+}
+
+/**
+ * 以下为 Excel 解析过程中的中间数据结构（原 ILuck 精简后保留在 ToUniver 内部），
+ * 仅用于连接 XML 解析层与 Univer 数据组装层，不对外暴露。
+ */
 import { LuckyConditionFormat } from "./LuckyCondition";
 import { IDefinedNames } from "./LuckyDefineName";
 import { LuckyFilterFormat } from "./luckyFilter";
@@ -168,7 +455,6 @@ export interface IluckysheetCalcChain {
     r: number,
     c: number,
     index: string | undefined,
-    // func?:any[],//[true, 152, "=SUBTOTAL(9,OFFSET(F15,ROW(F15:F18)-ROW(F15),1,3))"] 已经计算、终值、公式
 }
 
 export interface IluckySheetCelldata {

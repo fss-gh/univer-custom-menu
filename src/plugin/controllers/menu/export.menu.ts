@@ -7,9 +7,6 @@ import {
 } from '@univerjs/core';
 import {
   MenuItemType,
-  IShortcutItem,
-  KeyCode,
-  MetaKeys,
   IMenuButtonItem,
   RibbonPosition,
   RibbonStartGroup,
@@ -18,7 +15,6 @@ import { ICustomMenuPulginParams } from '../..';
 import { LuckyExcel } from '../../../import_export';
 import { ExportBtnIcon } from '../../components/button-icon/ExportBtnIcon';
 
-let exportWorker: Worker;
 const OperationId = 'custom-menu.operation.export';
 const ExportButtonOperation: (config?: ICustomMenuPulginParams) => ICommand = (
   config
@@ -82,13 +78,6 @@ const ExportButtonOperation: (config?: ICustomMenuPulginParams) => ICommand = (
   },
 });
 
-const ExportShortcutItem: IShortcutItem = {
-  id: OperationId,
-  description: 'customMenu.export',
-  group: '1_common-edit',
-  binding: MetaKeys.CTRL_COMMAND | MetaKeys.SHIFT | KeyCode.E,
-};
-
 function CustomMenuItemExportButtonFactory(): IMenuButtonItem<string> {
   return {
     // Bind the command id, clicking the button will trigger this command
@@ -113,30 +102,4 @@ const CustomExportMenu = (config?: ICustomMenuPulginParams) => ({
   menu: CustomMenuItemExportButtonFactory,
   icon: { name: 'ExportBtnIcon', component: ExportBtnIcon },
 });
-const downloadFile = (fileName: string, buffer: Buffer) => {
-  const link = document.createElement('a');
-
-  let blob: Blob;
-  if (typeof buffer === 'string') {
-    blob = new Blob([buffer], { type: 'text/csv;charset=utf-8;' });
-  } else {
-    blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
-    });
-  }
-
-  const url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-
-  link.addEventListener('click', () => {
-    link.remove();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 200);
-  });
-};
-
 export default CustomExportMenu;

@@ -78,6 +78,7 @@ function setMerges(worksheet: Worksheet, mergeData: any[]) {
 function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any, workbook: Workbook) {
     const { resources, sheets } = snapshot;
     const { cellData, id } = sheet;
+    const formulaMap = getFormulaMap(cellData);
     for (const rowid in cellData) {
         const row = cellData[rowid];
         for (const columnid in row) {
@@ -91,14 +92,15 @@ function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any, w
                 sheetId: id,
                 rowId: rowid,
                 columnId: columnid,
-                sheets
+                sheets,
+                formulaMap
             }, workbook);
 
             let originStyle = cell.s;
             if (typeof cell.s === 'string') {
                 originStyle = styles[cell.s]
             }
-            const style = removeEmptyAttr(cellStyle(originStyle, originStyle?.n?.pattern || cell.f))
+            const style = removeEmptyAttr(cellStyle(originStyle, originStyle?.n?.pattern))
             Object.assign(target, style)
             // console.log(target)
         }
@@ -143,6 +145,34 @@ function handleHyperLink(hyperlink: any, sheets: any) {
     return hyperlinks
 }
 
+function getFormulaMap(cellData: any) {
+    const map: Record<string, { row: number; column: number; formula: string }> = {};
+    for (const rowid in cellData) {
+        const row = cellData[rowid];
+        for (const columnid in row) {
+            const cell = row[columnid];
+            if (cell?.si && cell?.f) {
+                map[cell.si] = {
+                    row: Number(rowid),
+                    column: Number(columnid),
+                    formula: String(cell.f).replace(/^=/, ''),
+                };
+            }
+        }
+    }
+    return map;
+}
+
+function toExcelAddress(row: number, column: number) {
+    let col = '';
+    let n = column;
+    while (n >= 0) {
+        col = String.fromCharCode((n % 26) + 65) + col;
+        n = Math.floor(n / 26) - 1;
+    }
+    return `${col}${row + 1}`;
+}
+
 function handleValue(cell: any, cellSource: any, workbook: Workbook) {
     const { sheets } = cellSource
     const hyperlink = getHyperLink(cellSource)
@@ -173,8 +203,23 @@ function handleValue(cell: any, cellSource: any, workbook: Workbook) {
                 })
             }
         }
+    } else if (cell.f) {
+        // Univer 中公式存放在 f 字段（例如 =SUM(A1:A2)），ExcelJS 需要去掉开头的 =
+        const formula = String(cell.f).replace(/^=/, '');
+        value = { formula, result: cell.v }
     } else if (cell.si) {
-        value = { formula: cell.si, result: cell.v }
+        // 共享公式：Univer 子单元格可能只有 si，没有完整 f，需要指向主公式单元格
+        const { formulaMap } = cellSource;
+        const master = formulaMap?.[cell.si];
+        if (master) {
+            value = {
+                sharedFormula: toExcelAddress(master.row, master.column),
+                result: cell.v,
+            };
+        } else {
+            // 兼容旧数据：si 作为共享公式的兜底
+            value = { formula: String(cell.si).replace(/^=/, ''), result: cell.v }
+        }
     } else {
         value = cell.v
     }

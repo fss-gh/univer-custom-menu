@@ -1,4 +1,4 @@
-import { IluckysheetDataVerificationType } from "./ToLuckySheet/ILuck";
+import { IluckysheetDataVerificationType } from "./ToUniver/types";
 
 
 export interface IuploadfileList { 

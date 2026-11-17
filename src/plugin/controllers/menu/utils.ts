@@ -24,10 +24,12 @@ export function disableMenuWhenSelectRange(accessor: IAccessor): Observable<bool
 
     return new Observable((subscriber) => {
         const subscription = docSelectionManagerService.selectionChanged$.subscribe((selection) => {
-           const { startRow,endRow,startColumn,endColumn } = selection![0].range
-            if (startRow === endRow && startColumn===endColumn) {
-                subscriber.next(false);
-                return;
+            if (selection && selection[0]) {
+                const { startRow, endRow, startColumn, endColumn } = selection[0].range;
+                if (startRow === endRow && startColumn === endColumn) {
+                    subscriber.next(false);
+                    return;
+                }
             }
             subscriber.next(true);
         });

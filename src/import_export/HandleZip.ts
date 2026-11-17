@@ -5,7 +5,7 @@ import {getBinaryContent} from "./common/method"
 
 export class HandleZip{
     uploadFile:File; 
-    workBook:JSZip; 
+    workBook!:JSZip; 
     
     constructor(file?:any){
         // Support nodejs fs to read files

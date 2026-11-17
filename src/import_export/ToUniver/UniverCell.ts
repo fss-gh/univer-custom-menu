@@ -1,15 +1,17 @@
-import { IluckyImageDefault, IluckySheetborderInfoCellForImp } from "./ILuck";
+import { BorderCellForImp, CellFormat, CellStyleValue, ImageDefault, InlineString, IluckySheetCelldata, IluckySheetCelldataValue } from "./types";
+import { IattributeList } from "../ICommon";
 import { ReadXml, Element, IStyleCollections, getColor, getlineStringAttr } from "./ReadXml";
 import { getXmlAttibute, getcellrange, escapeCharacter, isChinese, isJapanese, isKoera, getPxByEMUs } from "../common/method";
 import { ST_CellType, cellImagesRels } from "../common/constant"
-import { IattributeList } from "../ICommon";
-import { LuckySheetborderInfoCellForImp, LuckySheetCelldataBase, LuckySheetCelldataValue, LuckySheetCellFormat, LuckyInlineString } from "./LuckyBase";
 import { getBackgroundByFill, getFontStyle, handleBorder } from './style'
 import { ImageList } from "./LuckyImage";
 import { replaceSpecialWrap } from "../common/utils";
 
-export class LuckySheetCelldata extends LuckySheetCelldataBase {
-    _borderObject?: IluckySheetborderInfoCellForImp
+export class UniverCell implements IluckySheetCelldata {
+    r!: number
+    c!: number
+    v!: IluckySheetCelldataValue | string | null
+    _borderObject?: BorderCellForImp
     _fomulaRef!: string
     _formulaSi!: string
     _formulaType!: string
@@ -34,8 +36,6 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
         imageList: ImageList,
         ReadXml: ReadXml
     ) {
-        //Private
-        super();
         this.cell = cell;
         this.sheetFile = sheetFile;
         this.styles = styles;
@@ -52,7 +52,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
         this.r = range.row[0];
         this.c = range.column[0];
-        this.v = this.generateValue(s, t);
+        this.v = this.generateValue(s, t) as unknown as IluckySheetCelldataValue;
 
     }
 
@@ -78,7 +78,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
         let clrScheme = this.styles["clrScheme"] as Element[];
 
         let sharedStrings = this.sharedStrings;
-        let cellValue = new LuckySheetCelldataValue();
+        let cellValue: CellStyleValue = {};
 
         if (f != null) {
             let formula = f[0], attrList = formula.attributeList;
@@ -216,7 +216,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
             if (numFmtId != undefined) {
                 let numf = numfmts[parseInt(numFmtId)];
-                let cellFormat = new LuckySheetCellFormat();
+                let cellFormat = {} as CellFormat;
                 cellFormat.fa = escapeCharacter(numf) || '';
                 // console.log(numf, numFmtId, this.v, cellFormat);
                 cellFormat.t = t || 'd';
@@ -360,7 +360,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                 let border = borders[borderIdNum];
                 // this._borderId = borderIdNum;
 
-                let borderObject = new LuckySheetborderInfoCellForImp();
+                let borderObject = {} as BorderCellForImp;
                 borderObject.rangeType = "cell";
                 // borderObject.cells = [];
 
@@ -414,7 +414,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
                             let cellFormat = cellValue.ct;
                             if (cellFormat == null) {
-                                cellFormat = new LuckySheetCellFormat();
+                                cellFormat = {} as CellFormat;
                             }
 
                             if (cellFormat.s == null) {
@@ -442,7 +442,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                                 }
 
                                 if ((type != preWordType && preWordType != null) || i == textArray.length - 1) {
-                                    let InlineString = new LuckyInlineString();
+                                    let InlineString = {} as InlineString;
 
                                     InlineString.ff = preWholef || undefined;
 
@@ -480,7 +480,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                                             InlineString.v = wordText;
                                             cellFormat.s.push(InlineString);
 
-                                            let InlineStringLast = new LuckyInlineString();
+                                            let InlineStringLast = {} as InlineString;
                                             InlineStringLast.ff = ff;
                                             InlineStringLast.v = w;
                                             if (cellValue.fc != null) {
@@ -540,11 +540,11 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                             text = replaceSpecialWrap(text);
 
                             if (text.indexOf("\r\n") > -1 || text.indexOf("\n") > -1) {
-                                let InlineString = new LuckyInlineString();
+                                let InlineString = {} as InlineString;
                                 InlineString.v = text;
                                 let cellFormat = cellValue.ct;
                                 if (cellFormat == null) {
-                                    cellFormat = new LuckySheetCellFormat();
+                                    cellFormat = {} as CellFormat;
                                 }
 
                                 if (cellValue.ff != null) {
@@ -588,12 +588,12 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                     }
                 }
                 else {
-                    let styles: LuckyInlineString[] = [];
+                    let styles: InlineString[] = [];
                     rFlag.forEach((r) => {
                         let tFlag = r.getInnerElements("t");
                         let rPr = r.getInnerElements("rPr");
 
-                        let InlineString = new LuckyInlineString();
+                        let InlineString = {} as InlineString;
 
                         if (tFlag != null && tFlag.length > 0) {
                             let text = tFlag[0].value;
@@ -719,7 +719,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
                     let cellFormat = cellValue.ct;
                     if (cellFormat == null) {
-                        cellFormat = new LuckySheetCellFormat();
+                        cellFormat = {} as CellFormat;
                     }
                     cellFormat.t = "inlineStr";
                     cellFormat.s = styles;
@@ -737,7 +737,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
                 let cellFormat = cellValue.ct;
                 if (cellFormat == null) {
-                    cellFormat = new LuckySheetCellFormat();
+                    cellFormat = {} as CellFormat;
                 }
                 cellFormat.t = "s";
                 cellValue.ct = cellFormat;
@@ -751,7 +751,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
             else if (t == ST_CellType["String"] && value.includes('=DISPIMG')) {
                 let cellFormat = cellValue.ct;
                 if (cellFormat == null) {
-                    cellFormat = new LuckySheetCellFormat();
+                    cellFormat = {} as CellFormat;
                 }
                 cellFormat.t = "str";
                 cellFormat.ci = this.getCellImage(cellValue, value);
@@ -768,7 +768,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
         }
 
         if (t !== null && !cellValue.ct?.t) {
-            let cellFormat = new LuckySheetCellFormat();
+            let cellFormat = {} as CellFormat;
             cellFormat.t = t || 'd';
             cellValue.ct = cellFormat;
         }
@@ -782,7 +782,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
         });
     };
 
-    private getCellImage(cellValue: LuckySheetCelldataValue, value: string): any {
+    private getCellImage(cellValue: CellStyleValue, value: string): any {
         const id = this.extractImageId(value);
         let ci: any = {};
         this.cellImages.forEach((element) => {
@@ -820,7 +820,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                     cx_n = cx_n / rateY;
                     cy_n = this.cellSize.height;
                 }
-                let imageDefault: IluckyImageDefault = {
+                let imageDefault: ImageDefault = {
                     height: cy_n,
                     left: x_n,
                     top: y_n,

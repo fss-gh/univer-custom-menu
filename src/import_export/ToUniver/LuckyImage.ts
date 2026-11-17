@@ -1,6 +1,6 @@
 import { IuploadfileList, IattributeList } from "../ICommon";
 import { generateRandomIndex } from "../common/method";
-import { LuckyImageBase } from "./LuckyBase";
+import { ImageObject } from "./types";
 import { FromEMF, ToContext2D } from "../common/emf";
 
 
@@ -47,22 +47,22 @@ export class ImageList {
 }
 
 
-class Image extends LuckyImageBase {
+class Image implements ImageObject {
 
-    fromCol!: number
-    fromColOff!: number
-    fromRow!: number
-    fromRowOff!: number
+    fromCol?: number
+    fromColOff?: number
+    fromRow?: number
+    fromRowOff?: number
 
-    toCol!: number
-    toColOff!: number
-    toRow!: number
-    toRowOff!: number
+    toCol?: number
+    toColOff?: number
+    toRow?: number
+    toRowOff?: number
 
     id: string
+    src: string
 
     constructor(pathName: string, base64: string) {
-        super();
         this.src = base64;
         this.id = generateRandomIndex('image');
     }

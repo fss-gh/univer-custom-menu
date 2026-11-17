@@ -15,7 +15,7 @@ import {
 import { UniverSheetBase } from './UniverSheetBase';
 import { handleStyle, removeEmptyAttr } from './utils';
 import { str2num, generateRandomId } from '../common/method';
-import { IluckySheet, IluckySheetConfig, IluckySheetCelldata, IluckysheetHyperlink, IluckysheetFrozen, IluckySheetCelldataValue } from '../ToLuckySheet/ILuck';
+import { IluckySheet, IluckySheetConfig, IluckySheetCelldata, IluckysheetHyperlink, IluckysheetFrozen, IluckySheetCelldataValue } from './types';
 import { ImageSourceType } from './ILuckInterface';
 
 export interface HyperLink {
@@ -233,11 +233,13 @@ export class UniverSheet extends UniverSheetBase {
             const paragraphs = matchArray(dataStream, matchChart.r).map((d) => {
                 return {
                     startIndex: d,
+                    paragraphId: generateRandomId(6),
                 };
             });
             const sectionBreaks = matchArray(dataStream, matchChart.n).map((d) => {
                 return {
                     startIndex: d,
+                    sectionId: generateRandomId(6),
                 };
             });
             const textRuns = v.ct.s.map((d, index) => {
@@ -413,10 +415,10 @@ export class UniverSheet extends UniverSheetBase {
     
     private handleFreeze = (freeze: IluckysheetFrozen) => {
         this.freeze = {
-            xSplit: freeze.vertical,
-            ySplit: freeze.horizen,
-            startColumn: freeze.vertical,
-            startRow: freeze.horizen,
+            xSplit: freeze.vertical ?? 0,
+            ySplit: freeze.horizen ?? 0,
+            startColumn: freeze.vertical ?? 0,
+            startRow: freeze.horizen ?? 0,
         };
     };
 }

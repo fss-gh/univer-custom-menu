@@ -6,15 +6,14 @@ import {
     IWorksheetData,
     LocaleType,
     Nullable,
-    PresetGeometryType,
 } from '@univerjs/core';
 import { HyperLink, UniverSheet } from './UniverSheet';
 // import { ISheetDrawing, SheetDrawingAnchorType } from '@univerjs/sheets-drawing';
 import { handleStyle } from './utils';
 import { generateRandomId } from '../common/method';
-import { IluckySheet, ILuckyFile, IWorkBookInfo } from '../ToLuckySheet/ILuck';
+import { IluckySheet, ILuckyFile, IWorkBookInfo } from './types';
 import { ImageSourceType } from './ILuckInterface';
-import { handleRanges } from '../ToLuckySheet/style';
+import { handleRanges } from './style';
 
 interface Sheets {
     [sheetId: string]: Partial<IWorksheetData & { hyperLink: HyperLink[] }>;
@@ -182,7 +181,7 @@ export class UniverWorkBook implements IWorkbookData {
                         drawingType: DrawingTypeEnum.DRAWING_IMAGE,
                         imageSourceType: ImageSourceType.BASE64,
                         source: image.src,
-                        prstGeom: 'rect' as Nullable<PresetGeometryType>,
+                        prstGeom: 'rect',
                         anchorType: '1',
                     }
                 }

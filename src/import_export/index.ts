@@ -1,4 +1,5 @@
-import { LuckyFile } from "./ToLuckySheet/LuckyFile";
+import { LuckyFile } from "./ToUniver/LuckyFile";
+import { ILuckyFile } from "./ToUniver/types";
 // import {SecurityDoor,Car} from './content';
 
 import { HandleZip } from './HandleZip';
@@ -9,14 +10,14 @@ import { WorkBook } from "./UniverToExcel/Workbook";
 import exceljs from "@zwight/exceljs";
 import { CSV } from "./UniverToCsv/CSV";
 import { isObject } from "./common/method";
-import { UniverWorkBook } from "./LuckyToUniver/UniverWorkBook";
+import { UniverWorkBook } from "./ToUniver/UniverWorkBook";
 import { IWorkbookData } from "@univerjs/core";
 import { formatSheetData, getDataByFile } from "./common/utils";
-import { UniverCsvWorkBook } from "./LuckyToUniver/UniverCsvWorkBook";
+import { UniverCsvWorkBook } from "./ToUniver/UniverCsvWorkBook";
 export class LuckyExcel {
     constructor() { }
     static transformExcelToLucky(excelFile: File,
-        callback?: (files: IuploadfileList, fs?: string) => void,
+        callback?: (files: ILuckyFile, fs?: string) => void,
         errorHandler?: (err: Error) => void) {
         let handleZip: HandleZip = new HandleZip(excelFile);
 
@@ -31,8 +32,8 @@ export class LuckyExcel {
 
         handleZip.unzipFile(function (files: IuploadfileList) {
             let luckyFile = new LuckyFile(files, excelFile.name);
-            let luckysheetfile = luckyFile.Parse();
-            let exportJson = JSON.parse(luckysheetfile);
+            const exportJson = luckyFile.Parse();
+            const luckysheetfile = JSON.stringify(exportJson);
             console.log('output---->', exportJson)
             if (callback != undefined) {
                 callback(exportJson, luckysheetfile);
@@ -50,13 +51,13 @@ export class LuckyExcel {
     static transformExcelToLuckyByUrl(
         url: string,
         name: string,
-        callBack?: (files: IuploadfileList, fs?: string) => void,
+        callBack?: (files: ILuckyFile, fs?: string) => void,
         errorHandler?: (err: Error) => void) {
         let handleZip: HandleZip = new HandleZip();
         handleZip.unzipFileByUrl(url, function (files: IuploadfileList) {
             let luckyFile = new LuckyFile(files, name);
-            let luckysheetfile = luckyFile.Parse();
-            let exportJson = JSON.parse(luckysheetfile);
+            const exportJson = luckyFile.Parse();
+            const luckysheetfile = JSON.stringify(exportJson);
             if (callBack != undefined) {
                 callBack(exportJson, luckysheetfile);
             }
@@ -81,12 +82,11 @@ export class LuckyExcel {
         handleZip.unzipFile(function (files: IuploadfileList) {
             console.log('input------>', files);
             let luckyFile = new LuckyFile(files, excelFile.name);
-            let luckysheetfile = luckyFile.Parse();
-            let exportJson = JSON.parse(luckysheetfile);
+            const exportJson = luckyFile.Parse();
             console.log('output---->', exportJson, files)
             if (callback != undefined) {
                 const univerData = new UniverWorkBook(exportJson)
-                callback(univerData.mode, luckysheetfile);
+                callback(univerData.mode);
             }
         },
             function (err: Error) {

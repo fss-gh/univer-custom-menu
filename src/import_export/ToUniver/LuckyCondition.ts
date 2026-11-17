@@ -5,7 +5,7 @@
 */
 import { escapeCharacter, generateRandomIndex, getXmlAttibute, str2num } from "../common/method";
 import { IattributeList } from "../ICommon";
-import { LuckySheetCellFormat } from "./LuckyBase";
+import { CellFormat } from "./types";
 import { Element, getColor, IStyleCollections, ReadXml } from "./ReadXml";
 import { getBackgroundByFill, getFontStyle, handleBorder, handleRanges, IRange } from "./style";
 
@@ -266,8 +266,10 @@ export class LuckyCondition implements LuckyConditionFormat {
 
                 if (numFmt) {
                     let numf = numfmts[parseInt(numFmt?.attributeList?.numFmtId || '0')];
-                    let cellFormat = new LuckySheetCellFormat();
-                    cellFormat.fa = (numf ? escapeCharacter(numf) : numFmt.attributeList.formatCode) || '';
+                    const cellFormat: CellFormat = {
+                        fa: (numf ? escapeCharacter(numf) : numFmt.attributeList.formatCode) || '',
+                        t: '',
+                    };
                     style.ct = cellFormat;
                 }
 

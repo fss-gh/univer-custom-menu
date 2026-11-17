@@ -1,6 +1,6 @@
-import { LuckySheetborderInfoCellValueStyle, LuckySheetborderInfoCellForImp, LuckySheetborderInfoCellValue, LuckySheetCelldataBase, LuckySheetCelldataValue, LuckySheetCellFormat, LuckyInlineString } from "./LuckyBase";
-import { ReadXml, Element, IStyleCollections, getColor, getlineStringAttr } from "./ReadXml";
-import { ST_CellType, indexedColors, OEM_CHARSET, borderTypes, fontFamilys } from "../common/constant"
+import { BorderCellValue, BorderStyleValue, CellStyleValue } from "./types";
+import { Element, IStyleCollections, getColor, getlineStringAttr } from "./ReadXml";
+import { borderTypes, fontFamilys } from "../common/constant"
 import { ABCToNumber, isfreezonFuc } from "../common/method";
 
 export enum AbsoluteRefType {
@@ -18,7 +18,7 @@ export interface IRange {
     endAbsoluteRefType: AbsoluteRefType,
     rangeType: number
 }
-export function getBorderInfo(borders: Element[] | null, styles: IStyleCollections) {
+export function getBorderInfo(borders: Element[] | null, styles: IStyleCollections): BorderStyleValue | null {
     if (borders == null) {
         return null;
     }
@@ -39,15 +39,14 @@ export function getBorderInfo(borders: Element[] | null, styles: IStyleCollectio
         }
     }
 
-    let ret = new LuckySheetborderInfoCellValueStyle();
-    ret.style = borderTypes[style];
-    ret.color = colorRet;
-
-    return ret;
+    return {
+        style: borderTypes[style],
+        color: colorRet,
+    };
 }
 
 export function handleBorder(border: Element, styles: IStyleCollections) {
-    const borderCellValue = new LuckySheetborderInfoCellValue();
+    const borderCellValue: BorderCellValue = {};
     let isAdd = false;
     if (!border) {
         return {
@@ -157,7 +156,7 @@ export function getBackgroundByFill(fill: Element, styles: IStyleCollections): s
 
 export function getFontStyle(font: Element, styles: IStyleCollections) {
     let familyFont = null;
-    const cellValue = new LuckySheetCelldataValue();
+    const cellValue: CellStyleValue = {};
     let sz = font.getInnerElements("sz");//font size
     let colors = font.getInnerElements("color");//font color
     let family = font.getInnerElements("name");//font family

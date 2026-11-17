@@ -1,8 +1,8 @@
 import { columeHeader_word, columeHeader_word_index } from "./constant";
-import { IluckySheetSelection } from "../ToLuckySheet/ILuck";
+import { IluckySheetSelection } from "../ToUniver/types";
 import { IattributeList, stringToNum } from "../ICommon";
 import { customAlphabet, nanoid } from "nanoid";
-import { ReadXml } from "../ToLuckySheet/ReadXml";
+import { ReadXml } from "../ToUniver/ReadXml";
 
 
 export function getRangetxt(range: IluckySheetSelection, sheettxt: string) {

@@ -11,7 +11,7 @@ import {
     IStyleBase,
 } from '@univerjs/core';
 import { isObject } from '../common/method';
-import { IluckySheetborderInfoCellForImp, IluckySheetborderInfoCellValueStyle, IluckySheetCelldata } from '../ToLuckySheet/ILuck';
+import { IluckySheetborderInfoCellForImp, IluckySheetborderInfoCellValueStyle, IluckySheetCelldata } from './types';
 
 /**
  * 删除对象中含undefined的值

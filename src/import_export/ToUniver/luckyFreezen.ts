@@ -1,8 +1,8 @@
 import { getXmlAttibute } from "../common/method";
-import { IluckysheetFrozen } from "./ILuck";
+import { FrozenData } from "./types";
 import { Element } from "./ReadXml";
 
-export class LuckyFreezen implements IluckysheetFrozen {
+export class LuckyFreezen implements FrozenData {
     horizen: number;
     vertical: number;
     constructor(pane: Element) {

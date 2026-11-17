@@ -1,4 +1,4 @@
-﻿import { ILuckyFile,IluckySheetRowAndColumnHidden,IluckySheetRowAndColumnLen} from "./ILuck";
+﻿import { ILuckyFile,IluckySheetRowAndColumnHidden,IluckySheetRowAndColumnLen} from "./types";
 import { LuckySheet} from "./LuckySheet";
 import {IuploadfileList, IattributeList} from "../ICommon";
 import {workBookFile, coreFile, appFile, stylesFile, sharedStringsFile,numFmtDefault,theme1File,calcChainFile,workbookRels, numFmtDefaultMap, cellImages} from "../common/constant";
@@ -364,7 +364,7 @@ export class LuckyFile extends LuckyFileBase {
     /**
     * @return LuckySheet file json
     */
-    Parse():string{
+    Parse(): ILuckyFile {
         // let xml = this.readXml;
         // for(let key in this.sheetNameList){
         //     let sheetName=this.sheetNameList[key];
@@ -401,7 +401,7 @@ export class LuckyFile extends LuckyFileBase {
         return this.toJsonString(this);
     }
 
-    private toJsonString(file:ILuckyFile):string{
+    private toJsonString(file:ILuckyFile):ILuckyFile {
         let LuckyOutPutFile = new LuckyFileBase();
         LuckyOutPutFile.info = file.info;
         LuckyOutPutFile.workbook = file.workbook;
@@ -545,7 +545,7 @@ export class LuckyFile extends LuckyFileBase {
             LuckyOutPutFile.sheets.push(sheetout);
         });
 
-        return JSON.stringify(LuckyOutPutFile);
+        return LuckyOutPutFile;
     }
 
 
