@@ -7,6 +7,8 @@ export default {
         singleButton: 'Single button',
         superscript: 'Superscript',
         subscript: 'Subscript',
+        printAreaSet: 'Set print area',
+        printAreaClear: 'Clear print area',
         dropdown: 'Dropdown',
         dropdownList: 'Dropdown list',
         itemOne: 'Item 1',

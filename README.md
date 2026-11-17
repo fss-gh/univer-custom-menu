@@ -1,6 +1,6 @@
 # univer-custom-menu
 
-Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出** 和 **上下标（Superscript / Subscript）** 功能，并可以直接在 Vue / React 项目中使用。
+Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出**、**上下标（Superscript / Subscript）** 和 **打印区域（Print Area）** 功能，并可以直接在 Vue / React 项目中使用。
 
 ## 功能
 
@@ -8,6 +8,7 @@ Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出** 和 **上�
 - 导出菜单：将当前 Univer 工作簿导出为 Excel / CSV
 - 支持条件格式、数据验证、筛选、图表、冻结、超链接等常见 Excel 特性
 - 上下标插件：在工具栏中同时提供上标、下标两个按钮
+- 打印区域插件：导入 Excel 的 `_xlnm.Print_Area` 后以蓝色虚线显示边界，支持在工具栏中设置/清除，并随 Univer 快照以 JSON 形式保存
 - 不依赖 `@univerjs/vite-plugin`，插件通过 `Plugin` 基类手动注册
 
 ## 目录结构
@@ -21,7 +22,8 @@ src/
 │   └── common/            # 公共工具（XML、EMF、常量等）
 └── plugin/
     ├── import-export/     # 导入/导出菜单插件
-    └── super-subscript/   # 上下标插件
+    ├── super-subscript/   # 上下标插件
+    └── print-area/        # 打印区域插件（蓝色虚线边界 + 设置/清除 + JSON 保存）
 ```
 
 > 说明：已移除原来的 `ToLuckySheet` / `LuckyToUniver` 中间层，`LuckyFile.Parse()` 现在直接返回 `ILuckyFile` 对象，再由 `UniverWorkBook` 生成 `IWorkbookData`，逻辑更少一层。
@@ -131,6 +133,38 @@ univer.registerPlugin(UniverSheetsSuperSubscriptPlugin, {
   superscript: {},
   subscript: false, // 只显示上标
 });
+```
+
+## 注册打印区域插件
+
+```ts
+import { UniverSheetsPrintAreaPlugin } from 'univer-custom-menu';
+
+univer.registerPlugin(UniverSheetsPrintAreaPlugin, {
+  // 可选：边界颜色与线宽，默认蓝色虚线
+  stroke: '#2F6BFF',
+  strokeWidth: 2,
+  // showBorder: false, // 只保存数据，不显示边界
+});
+```
+
+使用方式：
+
+1. 先通过“导入”菜单打开带打印区域的 Excel 文件，Univer 会自动把 `_xlnm.Print_Area` 解析为 `SHEET_PRINT_AREA_PLUGIN` 资源，并在表格画布上显示蓝色虚线边界。
+2. 选中任意区域后点击工具栏「设置打印区域」可设置/替换当前工作表的打印区域；点击「清除打印区域」可移除。
+3. 打印区域数据会随 `activeWorkbook.save()` 返回的 JSON 快照保存到 `resources` 中，导出 Excel 时也会重新写回 `pageSetup.printArea`。
+
+数据 JSON 示例：
+
+```json
+{
+  "resources": [
+    {
+      "name": "SHEET_PRINT_AREA_PLUGIN",
+      "data": "{\"<sheetId>\":{\"ranges\":[{\"startRow\":0,\"startColumn\":0,\"endRow\":9,\"endColumn\":3}]}}"
+    }
+  ]
+}
 ```
 
 ## 直接使用转换工具

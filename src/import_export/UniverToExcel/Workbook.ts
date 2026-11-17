@@ -20,6 +20,9 @@ export class WorkBook extends Workbook {
         const definedNames = jsonParse(resources.find(d => d.name === 'SHEET_DEFINED_NAME_PLUGIN')?.data);
         for (const key in definedNames) {
             const element = definedNames[key]
+            // 打印区域由 SHEET_PRINT_AREA_PLUGIN 资源通过 pageSetup.printArea 写回，
+            // 这里跳过 _xlnm.Print_Area，避免 ExcelJS 重复生成定义名称。
+            if (element.name === '_xlnm.Print_Area') continue;
             this.definedNames.add(element.formulaOrRefString, element.name);
         }
     }

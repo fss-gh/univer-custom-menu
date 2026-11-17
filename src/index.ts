@@ -37,6 +37,20 @@ export type {
     ISuperSubscriptPluginConfig,
 } from './plugin/super-subscript/types';
 
+/** 打印区域插件（导入显示蓝色虚线边界 + 设置/清除 + JSON 保存） */
+export { UniverSheetsPrintAreaPlugin } from './plugin/print-area/plugin';
+export {
+    CLEAR_PRINT_AREA_COMMAND_ID,
+    PRINT_AREA_PLUGIN_CONFIG,
+    PRINT_AREA_PLUGIN_NAME,
+    SET_PRINT_AREA_COMMAND_ID,
+} from './plugin/print-area/types';
+export type {
+    IPrintAreaPluginConfig,
+    IPrintAreaResourceData,
+    ISheetPrintAreaData,
+} from './plugin/print-area/types';
+
 /** Excel 转换工具（需要时可直接使用） */
 export { LuckyExcel } from './import_export';
 /** 文件选择工具 */

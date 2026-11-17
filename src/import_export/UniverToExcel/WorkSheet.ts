@@ -1,5 +1,6 @@
 import { Workbook, Worksheet, WorksheetViewCommon, WorksheetViewFrozen } from "@zwight/exceljs";
 import { convertSheetIdToName, heightConvert, hex2argb, wdithConvert } from "./util";
+import { PRINT_AREA_PLUGIN_NAME } from "../../plugin/print-area/types";
 import { cellStyle, fontConvert } from "./CellStyle";
 import { jsonParse, removeEmptyAttr } from "../common/method";
 import { Resource } from "./Resource";
@@ -63,6 +64,7 @@ export function ExcelWorkSheet(workbook: Workbook, snapshot: any) {
         setRows(worksheet, sheet.rowData, defaultRowHeightR)
         setCell(worksheet, sheet, styles, snapshot, workbook);
         setMerges(worksheet, mergeData);
+        setPrintArea(worksheet, id, resources);
 
         new Resource(id, workbook, worksheet, resources);
     });
@@ -73,6 +75,20 @@ function setMerges(worksheet: Worksheet, mergeData: any[]) {
     mergeData.forEach(d => {
         worksheet.mergeCells(d.startRow + 1, d.startColumn + 1, d.endRow + 1, d.endColumn + 1)
     })
+}
+
+/**
+ * 从 SHEET_PRINT_AREA_PLUGIN 资源写回 Excel 的 pageSetup.printArea。
+ * ExcelJS 会在写文件时自动把 printArea 转成 _xlnm.Print_Area 定义名称。
+ */
+function setPrintArea(worksheet: Worksheet, sheetId: string, resources: any[]) {
+    const printAreas = jsonParse(resources.find((d: any) => d.name === PRINT_AREA_PLUGIN_NAME)?.data);
+    const sheetPrintArea = printAreas?.[sheetId];
+    if (!sheetPrintArea?.ranges?.length) return;
+
+    worksheet.pageSetup.printArea = sheetPrintArea.ranges
+        .map((range: any) => `${toExcelAddress(range.startRow, range.startColumn)}:${toExcelAddress(range.endRow, range.endColumn)}`)
+        .join('&&');
 }
 
 function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any, workbook: Workbook) {

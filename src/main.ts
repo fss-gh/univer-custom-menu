@@ -92,7 +92,7 @@ import { UniverSheetsUIPlugin } from "@univerjs/sheets-ui";
 import { UniverUIPlugin } from "@univerjs/ui";
 // 自定义插件
 import { UniverSheetsCustomMenuPlugin } from "./plugin";
-import { UniverSheetsImportExportPlugin, UniverSheetsSuperSubscriptPlugin } from "./index";
+import { UniverSheetsImportExportPlugin, UniverSheetsPrintAreaPlugin, UniverSheetsSuperSubscriptPlugin } from "./index";
 import { FUniver } from '@univerjs/core/facade';
 //引入Facade API 实现
 import '@univerjs/ui/facade'
@@ -221,6 +221,9 @@ univer.registerPlugin(UniverSheetsImportExportPlugin, {
 
 // 上下标插件（上标 + 下标）
 univer.registerPlugin(UniverSheetsSuperSubscriptPlugin, {});
+
+// 打印区域插件（导入显示蓝色虚线边界 + 设置/清除 + JSON 保存）
+univer.registerPlugin(UniverSheetsPrintAreaPlugin, {});
 
 // 其余自定义菜单（保存/下拉列表）
 univer.registerPlugin(UniverSheetsCustomMenuPlugin, {

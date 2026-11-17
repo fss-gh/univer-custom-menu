@@ -1,6 +1,7 @@
 import {
     DrawingTypeEnum,
     IResources,
+    IRange,
     IStyleData,
     IWorkbookData,
     IWorksheetData,
@@ -10,6 +11,7 @@ import {
 import { HyperLink, UniverSheet } from './UniverSheet';
 // import { ISheetDrawing, SheetDrawingAnchorType } from '@univerjs/sheets-drawing';
 import { handleStyle } from './utils';
+import { PRINT_AREA_PLUGIN_NAME } from '../../plugin/print-area/types';
 import { generateRandomId } from '../common/method';
 import { IluckySheet, ILuckyFile, IWorkBookInfo } from './types';
 import { ImageSourceType } from './ILuckInterface';
@@ -59,6 +61,7 @@ export class UniverWorkBook implements IWorkbookData {
         this.handleVerification(sheetsObj);
         this.handleFilter(sheetsObj);
         this.sheetOrder = order;
+        this.handlePrintArea(workbook);
 
         this.sheets = workSheets;
     }
@@ -238,6 +241,82 @@ export class UniverWorkBook implements IWorkbookData {
             name: 'SHEET_DEFINED_NAME_PLUGIN',
             data: JSON.stringify(workbook.defineNames),
         });
+    };
+    /**
+     * 把 Excel 的 _xlnm.Print_Area 定义名称转换为打印区域插件资源。
+     * Excel 的 localSheetId 是工作表索引，需要映射到 Univer 随机生成的 sheet id。
+     */
+    private handlePrintArea = (workbook: IWorkBookInfo) => {
+        const printAreas: Record<string, { ranges: IRange[] }> = {};
+        const definedNames = workbook.defineNames;
+
+        if (definedNames) {
+            for (const key in definedNames) {
+                const definedName = definedNames[key];
+                if (definedName.name !== '_xlnm.Print_Area') continue;
+
+                const localSheetId = Number(definedName.localSheetId);
+                const sheetId = this.sheetOrder[localSheetId];
+                if (!sheetId) continue;
+
+                const ranges = this.parsePrintAreaRef(definedName.formulaOrRefString);
+                if (!ranges.length) continue;
+
+                if (!printAreas[sheetId]) {
+                    printAreas[sheetId] = { ranges: [] };
+                }
+                printAreas[sheetId].ranges.push(...ranges);
+            }
+        }
+
+        this.resources?.push({
+            name: PRINT_AREA_PLUGIN_NAME,
+            data: JSON.stringify(printAreas),
+        });
+    };
+
+    /** 解析 "Sheet1'!$A$1:$D$10" 或 "A1:B2&&C3:D4" / "A1:B2,C3:D4" 这样的 A1 引用，返回一组 IRange */
+    private parsePrintAreaRef = (ref: string): IRange[] => {
+        // Excel 多个打印区域通常用逗号分隔，ExcelJS 的 pageSetup.printArea 用 && 分隔
+        // 每个区域可能都带 sheet 前缀，例如 'Sheet1'!$A$1:$B$2,'Sheet1'!$C$3:$D$4
+        const refs = ref.split(/&&|,/);
+        const result: IRange[] = [];
+
+        refs.forEach((singleRef) => {
+            const rangePart = singleRef.split('!').pop()?.trim();
+            if (!rangePart) return;
+
+            const cells = rangePart.split(':');
+            const first = this.parseCellAddress(cells[0]);
+            if (!first) return;
+            const second = cells.length > 1 ? this.parseCellAddress(cells[1]) : first;
+            if (!second) return;
+
+            result.push({
+                startRow: Math.min(first.row, second.row),
+                startColumn: Math.min(first.column, second.column),
+                endRow: Math.max(first.row, second.row),
+                endColumn: Math.max(first.column, second.column),
+            });
+        });
+
+        return result;
+    };
+
+    private parseCellAddress = (address: string): { row: number; column: number } | null => {
+        const match = address.replace(/\$/g, '').trim().match(/^([A-Z]+)(\d+)$/i);
+        if (!match) return null;
+
+        const colStr = match[1].toUpperCase();
+        let column = 0;
+        for (let i = 0; i < colStr.length; i++) {
+            column = column * 26 + (colStr.charCodeAt(i) - 64);
+        }
+
+        return {
+            row: Number(match[2]) - 1,
+            column: column - 1,
+        };
     };
     private handleCondition = (sheets: LuckySheetObj) => {
         const obj: any = {};
