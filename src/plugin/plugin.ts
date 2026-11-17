@@ -15,7 +15,7 @@
  */
 
 import { LocaleService, Plugin, Inject, Injector, UniverInstanceType } from '@univerjs/core';
-import type { Dependency } from '@univerjs/core';
+import { Dependency, IConfigService } from '@univerjs/core';
 
 /**
  * The ability to import locales from virtual modules and automatically import styles is provided by Univer Plugins. For more details, please refer to: https://univer.ai/guides/sheet/advanced/univer-plugins.
@@ -27,16 +27,21 @@ import type { Dependency } from '@univerjs/core';
 import zhCN from './locale/zh-CN';
 import enUS from './locale/en-US';
 import { CustomMenuController } from './controllers/custom-menu.controller';
+import { CUSTOM_PLUGIN_CONFIG, ICustomMenuPluginConfig } from '.';
 
 const SHEET_CUSTOM_MENU_PLUGIN = 'SHEET_CUSTOM_MENU_PLUGIN';
+
+const AllCustomController = [CustomMenuController]; //所有自定义菜单
 
 export class UniverSheetsCustomMenuPlugin extends Plugin {
     static override type = UniverInstanceType.UNIVER_SHEET;
     static override pluginName = SHEET_CUSTOM_MENU_PLUGIN;
 
     constructor(
+        readonly config: ICustomMenuPluginConfig,
         @Inject(Injector) protected readonly _injector: Injector,
-        @Inject(LocaleService) private readonly _localeService: LocaleService
+        @Inject(LocaleService) private readonly _localeService: LocaleService,
+        @IConfigService private readonly _configService: IConfigService
     ) {
         super();
 
@@ -44,15 +49,16 @@ export class UniverSheetsCustomMenuPlugin extends Plugin {
             zhCN,
             enUS
         });
-    }
-
-    override onStarting(): void {
-        ([
-            [CustomMenuController],
-        ] as Dependency[]).forEach((d) => this._injector.add(d));
+        this._configService.setConfig(CUSTOM_PLUGIN_CONFIG, config);
     }
 
     onReady(): void {
-        this._injector.get(CustomMenuController);
+        AllCustomController.forEach((d) => this._injector.get(d));
+    }
+
+    override onStarting(): void {
+        ([AllCustomController] as Dependency[]).forEach((d) =>
+            this._injector.add(d)
+        );
     }
 }

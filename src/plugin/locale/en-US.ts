@@ -1,5 +1,8 @@
 export default {
     customMenu: {
+        export: 'Export',
+        import: 'Import',
+        save: 'Save',
         button: 'Button',
         singleButton: 'Single button',
         dropdown: 'Dropdown',
