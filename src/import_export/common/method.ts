@@ -177,6 +177,22 @@ export function getPxByEMUs(emus: number | null) {
 }
 
 /** 
+ * 根据 base64 dataURL 推断 ExcelJS 支持的图片扩展名
+ * @param source 图片 base64（可带 data:image/xxx;base64 前缀）
+ * @returns png/jpeg/gif，无法识别时默认 png
+*/
+export function getImageExtension(source?: string): 'jpeg' | 'png' | 'gif' {
+    if (typeof source === 'string') {
+        const match = source.match(/^data:image\/(png|jpeg|jpg|gif);/i);
+        if (match) {
+            const ext = match[1].toLowerCase();
+            return ext === 'jpg' ? 'jpeg' : (ext as 'jpeg' | 'png' | 'gif');
+        }
+    }
+    return 'png';
+}
+
+/** 
  * @emus EMUs, Excel drawing unit
  * @return pixel
 */

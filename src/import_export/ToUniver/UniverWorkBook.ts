@@ -60,6 +60,7 @@ export class UniverWorkBook implements IWorkbookData {
         this.handleCondition(sheetsObj);
         this.handleVerification(sheetsObj);
         this.handleFilter(sheetsObj);
+        this.handleNotes(sheetsObj);
         this.sheetOrder = order;
         this.handlePrintArea(workbook);
 
@@ -129,43 +130,50 @@ export class UniverWorkBook implements IWorkbookData {
                 if ((sheet.rowCount||0) < image.toRow) {
                     sheet.rowCount = image.toRow + 1;
                 }
+                const defaultImage = image.default || {};
+                const transform = {
+                    width: defaultImage.width || image.originWidth || 0,
+                    height: defaultImage.height || image.originHeight || 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    left: defaultImage.left || 0,
+                    top: defaultImage.top || 0,
+                    angle: 0,
+                    skewX: 0,
+                    skewY: 0,
+                    flipX: false,
+                    flipY: false,
+                    ...(image.transform || {}),
+                };
+                // Excel 的 editAs 与 Univer 锚点类型对应：
+                // twoCell → Both("1")，oneCell → Position("0")，absolute → None("2")
+                const anchorType = image.type === '2' ? '0' : image.type === '3' ? '2' : '1';
+                const sheetTransform = {
+                    angle: 0,
+                    skewX: 0,
+                    skewY: 0,
+                    flipX: false,
+                    flipY: false,
+                    from: {
+                        column: image.fromCol,
+                        columnOffset: image.fromColOff,
+                        row: image.fromRow,
+                        rowOffset: image.fromRowOff,
+                    },
+                    to: {
+                        column: image.toCol,
+                        columnOffset: image.toColOff,
+                        row: image.toRow,
+                        rowOffset: image.toRowOff,
+                    },
+                };
                 let imageObj: any = {
                     unitId: this.id,
                     subUnitId: sheet.id || '',
                     drawingId: key,
-                    transform: {
-                        width: 0,
-                        height: 0,
-                        scaleX: 0,
-                        scaleY: 0,
-                        left: 0,
-                        top: 0,
-                        angle: 0,
-                        skewX: 0,
-                        skewY: 0,
-                        flipX: false,
-                        flipY: false,
-                        ...(image.transform || {}),
-                    },
-                    sheetTransform: {
-                        angle: 0,
-                        skewX: 0,
-                        skewY: 0,
-                        flipX: false,
-                        flipY: false,
-                        from: {
-                            column: image.fromCol,
-                            columnOffset: image.fromColOff,
-                            row: image.fromRow,
-                            rowOffset: image.fromRowOff,
-                        },
-                        to: {
-                            column: image.toCol,
-                            columnOffset: image.toColOff,
-                            row: image.toRow,
-                            rowOffset: image.toRowOff,
-                        },
-                    },
+                    transform,
+                    sheetTransform,
+                    axisAlignSheetTransform: sheetTransform,
                 }
                 if (image.type === 'chart') {
                     imageObj = {
@@ -185,7 +193,7 @@ export class UniverWorkBook implements IWorkbookData {
                         imageSourceType: ImageSourceType.BASE64,
                         source: image.src,
                         prstGeom: 'rect',
-                        anchorType: '1',
+                        anchorType,
                     }
                 }
 
@@ -357,5 +365,46 @@ export class UniverWorkBook implements IWorkbookData {
             name: 'SHEET_FILTER_PLUGIN',
             data: JSON.stringify(obj),
         });
+    };
+
+    /**
+     * Excel 传统批注 → Univer SHEET_NOTE_PLUGIN 资源
+     * 资源结构：{ [sheetId]: { [row]: { [col]: ISheetNote } } }
+     */
+    private handleNotes = (sheets: ExcelXmlSheetObj) => {
+        const notes: { [sheetId: string]: { [row: string]: { [col: string]: any } } } = {};
+        Object.keys(sheets).forEach((sheetId) => {
+            const comments = sheets[sheetId].comments;
+            if (!comments || !comments.length) {
+                return;
+            }
+
+            const sheetNotes: { [row: string]: { [col: string]: any } } = {};
+            comments.forEach((comment) => {
+                const rowKey = String(comment.row);
+                const colKey = String(comment.column);
+                if (!sheetNotes[rowKey]) {
+                    sheetNotes[rowKey] = {};
+                }
+                sheetNotes[rowKey][colKey] = {
+                    id: `${sheetId}_${comment.row}_${comment.column}`,
+                    row: comment.row,
+                    col: comment.column,
+                    width: comment.width || 200,
+                    height: comment.height || 80,
+                    note: comment.text,
+                    show: true,
+                };
+            });
+
+            notes[sheetId] = sheetNotes;
+        });
+
+        if (Object.keys(notes).length) {
+            this.resources?.push({
+                name: 'SHEET_NOTE_PLUGIN',
+                data: JSON.stringify(notes),
+            });
+        }
     };
 }

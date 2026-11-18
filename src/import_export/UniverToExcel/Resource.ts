@@ -1,5 +1,5 @@
 import { Anchor, Workbook, Worksheet } from "@zwight/exceljs";
-import { escapeCharacter, getEmusByPx, getRangetxt, isEmpty, jsonParse, removeEmptyAttr, str2num } from "../common/method";
+import { escapeCharacter, getEmusByPx, getImageExtension, getRangetxt, isEmpty, jsonParse, removeEmptyAttr, str2num } from "../common/method";
 import { CFRuleType, CFSubRuleType } from "../ToUniver/ExcelXmlCondition";
 import { hex2argb } from "./util";
 import { cellStyle } from "./CellStyle";
@@ -37,6 +37,7 @@ export class Resource {
         this.resources = resources;
 
         this.setImages();
+        this.setNotes();
         this.setConditional();
         this.setDataValidation();
         this.setFilter();
@@ -152,30 +153,60 @@ export class Resource {
         if (!sheetIamges) return;
         for (const key in sheetIamges) {
             const element = sheetIamges[key];
+            if (!element?.source) {
+                continue;
+            }
 
             const images = this.workbook.getImages();
-            let imageId = images.findIndex(d => d.extension === 'png' && d.base64 === element.source);
+            const extension = getImageExtension(element.source);
+            let imageId = images.findIndex(d => d.extension === extension && d.base64 === element.source);
             if (imageId === -1) {
                 imageId = this.workbook.addImage({
                     base64: element.source,
-                    extension: 'png'
+                    extension,
                 })
             }
             
             const handlePosition = (position: any) => {
                 return {
                     nativeCol: position.column,
-                    nativeColOff: getEmusByPx(position.columnOffset),
+                    // xdr:colOff / xdr:rowOff 必须是整数 EMU，否则 Excel 会提示修复 drawing1.xml
+                    nativeColOff: Math.round(getEmusByPx(position.columnOffset)),
                     nativeRow: position.row,
-                    nativeRowOff: getEmusByPx(position.rowOffset),
+                    nativeRowOff: Math.round(getEmusByPx(position.rowOffset)),
                 }
             }
             // console.log(handlePosition(element.sheetTransform.from), handlePosition(element.sheetTransform.to))
 
-            this.worksheet.addImage(imageId, {
+            const imageOptions: any = {
                 tl: handlePosition(element.sheetTransform.from) as Anchor,
-                br: handlePosition(element.sheetTransform.to) as Anchor
-            })
+                br: handlePosition(element.sheetTransform.to) as Anchor,
+            };
+            if (element.anchorType) {
+                // Univer SheetDrawingAnchorType：0=Position(oneCell)、1=Both(twoCell)、2=None(absolute)
+                const anchorType = String(element.anchorType);
+                imageOptions.editAs = anchorType === '0' ? 'oneCell' : anchorType === '2' ? 'absolute' : 'twoCell';
+            }
+
+            this.worksheet.addImage(imageId, imageOptions)
+        }
+    }
+
+    /**
+     * Univer SHEET_NOTE_PLUGIN 资源 → Excel 传统批注（cell.note）
+     */
+    private setNotes() {
+        const notes = this.getSheetResource('SHEET_NOTE_PLUGIN');
+        if (!notes) return;
+        for (const rowKey in notes) {
+            const rowNotes = notes[rowKey];
+            if (!rowNotes) continue;
+            for (const colKey in rowNotes) {
+                const note = rowNotes[colKey];
+                if (!note?.note) continue;
+                const cell = this.worksheet.getCell(Number(rowKey) + 1, Number(colKey) + 1);
+                cell.note = { texts: [{ text: note.note || '' }] };
+            }
         }
     }
 
@@ -201,7 +232,8 @@ export class Resource {
                 ruleValue.cfvo = rule.config?.map((d: any) => {
                     return {
                         type: d.value.type,
-                        value: d.value.value
+                        // min/max/percent 等类型没有 val 属性；null 会让 ExcelJS 调用 toString 报错
+                        value: d.value.value ?? undefined
                     }
                 });
                 ruleValue.color = rule.config?.map((d: any) => {
@@ -216,10 +248,10 @@ export class Resource {
                 ruleValue.gradient = rule.config.isGradient;
                 ruleValue.cfvo = [{
                     type: rule.config.min.type,
-                    value: rule.config.min.value
+                    value: rule.config.min.value ?? undefined
                 }, {
                     type: rule.config.max.type,
-                    value: rule.config.max.value
+                    value: rule.config.max.value ?? undefined
                 }];
                 ruleValue.negativeFillColor = { argb: hex2argb(rule.config.nativeColor) };
                 ruleValue.color = { argb: hex2argb(rule.config.positiveColor) }
@@ -249,7 +281,7 @@ export class Resource {
                 ruleValue.cfvo = rule.config?.map((d: any) => {
                     return {
                         type: d.value.type,
-                        value: d.value.value
+                        value: d.value.value ?? undefined
                     }
                 }).reverse();
                 break;

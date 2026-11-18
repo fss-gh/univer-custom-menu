@@ -151,6 +151,8 @@ export class ExcelXmlFile extends ExcelXmlFileBase {
                 }
             }
 
+            const commentsFile = this.getCommentsFile(sheetFile);
+
             if(sheetFile!=null){
                 let sheet = new ExcelXmlSheet(sheetName, sheetId, order, isInitialCell,
                     {
@@ -164,7 +166,8 @@ export class ExcelXmlFile extends ExcelXmlFileBase {
                         drawingFile:drawingFile,
                         drawingRelsFile: drawingRelsFile,
                         hide: hide,
-                        cellImages: this.cellImages
+                        cellImages: this.cellImages,
+                        commentsFile: commentsFile
                     }
                 )
                 this.columnWidthSet = [];
@@ -346,6 +349,42 @@ export class ExcelXmlFile extends ExcelXmlFileBase {
         let drawingRelsFile = drawingRelsPath + drawingRelsName + ".rels";
 
         return drawingRelsFile;
+    }
+
+    /**
+     * 获取工作表对应的批注 XML 文件路径（xl/comments*.xml）
+     */
+    private getCommentsFile(sheetFile: string): string | null {
+        if (!sheetFile) {
+            return null;
+        }
+        const sheetFileName = sheetFile.split("/").pop() || "";
+        const sheetRelsFile = `xl/worksheets/_rels/${sheetFileName}.rels`;
+        const relationships = this.readXml.getElementsByTagName("Relationships/Relationship", sheetRelsFile);
+        if (relationships.length === 0) {
+            return null;
+        }
+
+        for (let i = 0; i < relationships.length; i++) {
+            const relationship = relationships[i];
+            const attrList = relationship.attributeList;
+            const type = getXmlAttibute(attrList, "Type", null);
+            if (type && /comments$/.test(type)) {
+                let target = getXmlAttibute(attrList, "Target", null) || "";
+                if (!target) {
+                    continue;
+                }
+                target = target.replace(/^\.\.\//, "");
+                if (target.startsWith("/")) {
+                    target = target.replace(/^\//, "");
+                }
+                if (!target.startsWith("xl/")) {
+                    target = "xl/" + target;
+                }
+                return target;
+            }
+        }
+        return null;
     }
 
     private handleWorkBookInfo = () => {
@@ -540,6 +579,10 @@ export class ExcelXmlFile extends ExcelXmlFileBase {
 
             if (sheet.filter != null) {
                 sheetout.filter = sheet.filter;
+            }
+
+            if (sheet.comments != null && sheet.comments.length) {
+                sheetout.comments = sheet.comments;
             }
             
             ExcelXmlOutPutFile.sheets.push(sheetout);

@@ -2,7 +2,7 @@ import { Workbook, Worksheet, WorksheetViewCommon, WorksheetViewFrozen } from "@
 import { convertSheetIdToName, heightConvert, hex2argb, wdithConvert } from "./util";
 import { PRINT_AREA_PLUGIN_NAME } from "../../plugin/print-area/types";
 import { cellStyle, fontConvert } from "./CellStyle";
-import { jsonParse, removeEmptyAttr } from "../common/method";
+import { getImageExtension, jsonParse, removeEmptyAttr } from "../common/method";
 import { Resource } from "./Resource";
 
 export class ViewCommon implements WorksheetViewCommon {
@@ -200,7 +200,7 @@ function handleValue(cell: any, cellSource: any, workbook: Workbook) {
             const image = cell.p.drawings[cell.p.drawingsOrder[0]];
             const { id, value: imgId } = workbook.addCellImage({
                 base64: image.source,
-                extension: 'png',
+                extension: getImageExtension(image.source),
                 descr: image.description,
                 ext: {
                     width: image.transform.width,

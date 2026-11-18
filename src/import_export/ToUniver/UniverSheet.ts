@@ -11,6 +11,7 @@ import {
     IDocumentData,
     PositionedObjectLayoutType,
     DrawingTypeEnum,
+    WrapTextType,
 } from '@univerjs/core';
 import { UniverSheetBase } from './UniverSheetBase';
 import { handleStyle, removeEmptyAttr } from './utils';
@@ -335,7 +336,13 @@ export class UniverSheet extends UniverSheetBase {
                         drawingId: blockId,
                         layoutType: PositionedObjectLayoutType.INLINE,
                         title: '',
-                        description: descr,
+                        description: descr || '',
+                        behindDoc: BooleanNumber.FALSE,
+                        wrapText: WrapTextType.BOTH_SIDES,
+                        distB: 0,
+                        distL: 0,
+                        distR: 0,
+                        distT: 0,
                         docTransform: {
                             size: {
                                 width: defaultData.width,
@@ -354,7 +361,12 @@ export class UniverSheet extends UniverSheetBase {
                         drawingType: DrawingTypeEnum.DRAWING_IMAGE,
                         imageSourceType: ImageSourceType.BASE64,
                         source: src,
-                        transform: defaultData
+                        transform: {
+                            left: 0,
+                            top: 0,
+                            width: defaultData.width,
+                            height: defaultData.height,
+                        },
                     }
                 },
                 drawingsOrder: [blockId]

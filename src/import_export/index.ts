@@ -7,6 +7,7 @@ import { HandleZip } from './HandleZip';
 import { IuploadfileList } from "./ICommon";
 
 import { WorkBook } from "./UniverToExcel/Workbook";
+import { injectAutoFilterColumns } from "./UniverToExcel/filterXml";
 import exceljs from "@zwight/exceljs";
 import { CSV } from "./UniverToCsv/CSV";
 import { isObject } from "./common/method";
@@ -128,11 +129,13 @@ export class ExcelXml {
             // console.log(snapshot, workbook)
             // console.log(2, new Date())
             const buffer = await workbook.xlsx.writeBuffer();
+            // ExcelJS 不支持写 autoFilter 的 filterColumn，这里在生成 xlsx 后补上筛选条件。
+            const finalBuffer = await injectAutoFilterColumns(buffer, snapshot);
             // console.log(3, new Date())
             if (getBuffer) {
-                success?.(buffer);
+                success?.(finalBuffer);
             } else {
-                this.downloadFile(fileName, buffer);
+                this.downloadFile(fileName, finalBuffer);
                 success?.()
             }
 

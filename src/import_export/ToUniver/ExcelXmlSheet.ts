@@ -1,7 +1,7 @@
-﻿import { IExcelXmlImageBorder, IExcelXmlImageCrop, IExcelXmlImageDefault, IExcelXmlImages, IExcelXmlSheetCelldata, IExcelXmlSheetCelldataValue, IMapExcelXmlSheetborderInfoCellForImp, IExcelXmlSheetborderInfoCellValue, IExcelXmlSheetborderInfoCellValueStyle, IExcelXmlSheetborderInfoCellForImp, IFormulaSI, IExcelXmlSheetRowAndColumnLen, IExcelXmlSheetRowAndColumnHidden, IExcelXmlSheetSelection, IcellOtherInfo, IformulaList, IformulaListItem, IExcelXmlSheetHyperlink, IExcelXmlSheetHyperlinkType, IExcelXmlSheetDataVerification } from "./types";
+﻿import { IExcelXmlImageBorder, IExcelXmlImageCrop, IExcelXmlImageDefault, IExcelXmlImages, IExcelXmlSheetCelldata, IExcelXmlSheetCelldataValue, IMapExcelXmlSheetborderInfoCellForImp, IExcelXmlSheetborderInfoCellValue, IExcelXmlSheetborderInfoCellValueStyle, IExcelXmlSheetborderInfoCellForImp, IFormulaSI, IExcelXmlSheetRowAndColumnLen, IExcelXmlSheetRowAndColumnHidden, IExcelXmlSheetSelection, IcellOtherInfo, IformulaList, IformulaListItem, IExcelXmlSheetHyperlink, IExcelXmlSheetHyperlinkType, IExcelXmlSheetDataVerification, IExcelXmlSheetComment } from "./types";
 import { UniverCell } from "./UniverCell";
 import { IattributeList } from "../ICommon";
-import { getXmlAttibute, getColumnWidthPixel, fromulaRef, getRowHeightPixel, getcellrange, generateRandomIndex, getPxByEMUs, getMultiSequenceToNum, getTransR1C1ToSequence, getPeelOffX14, getMultiFormulaValue } from "../common/method";
+import { getXmlAttibute, getColumnWidthPixel, fromulaRef, getRowHeightPixel, getcellrange, generateRandomIndex, getPxByEMUs, getMultiSequenceToNum, getTransR1C1ToSequence, getPeelOffX14, getMultiFormulaValue, escapeCharacter } from "../common/method";
 import { borderTypes, COMMON_TYPE2, DATA_VERIFICATION_MAP, DATA_VERIFICATION_TYPE2_MAP, worksheetFilePath } from "../common/constant";
 import { ReadXml, IStyleCollections, Element, getColor } from "./ReadXml";
 import { ExcelXmlFileBase, ExcelXmlSheetBase, ExcelXmlConfig, ExcelXmlSheetborderInfoCellForImp, ExcelXmlSheetborderInfoCellValue, ExcelXmlSheetCalcChain, ExcelXmlSheetConfigMerge } from "./ExcelXmlBase";
@@ -24,6 +24,7 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
     private calcChainEles: Element[]
     private sheetList: IattributeList
     private cellImages: Element[]
+    private commentsFile?: string
 
     private imageList: ImageList
 
@@ -42,6 +43,7 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
         this.imageList = allFileOption.imageList;
         this.hide = allFileOption.hide;
         this.cellImages = allFileOption.cellImages;
+        this.commentsFile = allFileOption.commentsFile;
 
         //Output
         this.name = sheetName;
@@ -226,6 +228,9 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
 
         // hyperlink config
         this.hyperlink = this.generateConfigHyperlinks();
+
+        // comment/note config
+        this.comments = this.generateConfigComments();
 
         // sheet hide
         this.hide = this.hide;
@@ -825,6 +830,55 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
         }
 
         return hyperlink;
+    }
+
+    /**
+     * excelXmlSheet config of comments
+     *
+     * @returns {IExcelXmlSheetComment[] | undefined} - comment list
+     */
+    private generateConfigComments(): IExcelXmlSheetComment[] | undefined {
+        if (!this.commentsFile) {
+            return undefined;
+        }
+
+        const commentList = this.readXml.getElementsByTagName("commentList/comment", this.commentsFile);
+        if (!commentList || !commentList.length) {
+            return undefined;
+        }
+
+        const authors = this.readXml.getElementsByTagName("authors/author", this.commentsFile)
+            .map((author) => author.value) || [];
+        const comments: IExcelXmlSheetComment[] = [];
+
+        for (let i = 0; i < commentList.length; i++) {
+            const comment = commentList[i];
+            const ref = getXmlAttibute(comment.attributeList, "ref", null);
+            if (!ref) {
+                continue;
+            }
+
+            const range = getcellrange(ref);
+            if (!range) {
+                continue;
+            }
+
+            const authorId = parseInt(getXmlAttibute(comment.attributeList, "authorId", "0") as string, 10);
+            const author = authors[authorId] || "";
+
+            const textElement = comment.getInnerElements("text")?.[0];
+            const textRuns = textElement?.getInnerElements("t")?.map((t) => escapeCharacter(t.value) || "").join("") || "";
+
+            comments.push({
+                ref,
+                row: range.row[0],
+                column: range.column[0],
+                author,
+                text: textRuns,
+            });
+        }
+
+        return comments.length ? comments : undefined;
     }
 
     // private getBorderInfo(borders:Element[]):ExcelXmlSheetborderInfoCellValueStyle{

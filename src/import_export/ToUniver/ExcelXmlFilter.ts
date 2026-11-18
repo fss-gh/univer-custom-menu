@@ -54,7 +54,7 @@ export class ExcelXmlFilter implements ExcelXmlFilterFormat {
             const filters = d.getInnerElements('filters')?.[0];
             let colId = str2num(d.attributeList.colId!) as number;
 
-            colId = this.ref ? (colId + this.ref.startRow) : colId;
+            colId = this.ref ? (colId + this.ref.startColumn) : colId;
 
             let customFiltersVal = undefined
             if (customFilters) {

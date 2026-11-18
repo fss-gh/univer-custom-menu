@@ -356,6 +356,8 @@ export interface IExcelXmlSheet {
     conditionalFormatting: ExcelXmlConditionFormat[];
     dataVerificationList: ExcelXmlVerificationFormat[];
     filter: ExcelXmlFilterFormat
+
+    comments?: IExcelXmlSheetComment[]; // Excel 传统批注
 }
 
 //excelXmlSheet general selection
@@ -825,3 +827,23 @@ export interface IExcelXmlSheetHyperlinkValue {
 }
 
 export type IExcelXmlSheetHyperlinkType = "internal" | "external";
+
+/**
+ * Excel 传统批注（comments/comment）
+ */
+export interface IExcelXmlSheetComment {
+    /** 批注所在单元格，如 "B2" */
+    ref: string;
+    /** 0 基行号 */
+    row: number;
+    /** 0 基列号 */
+    column: number;
+    /** 批注作者 */
+    author?: string;
+    /** 批注文本（纯文本，保留换行） */
+    text: string;
+    /** 批注框宽度（像素，若 XML 可解析） */
+    width?: number;
+    /** 批注框高度（像素，若 XML 可解析） */
+    height?: number;
+}
