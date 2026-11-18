@@ -1,16 +1,16 @@
-import { BorderCellForImp, CellFormat, CellStyleValue, ImageDefault, InlineString, IluckySheetCelldata, IluckySheetCelldataValue } from "./types";
+import { BorderCellForImp, CellFormat, CellStyleValue, ImageDefault, InlineString, IExcelXmlSheetCelldata, IExcelXmlSheetCelldataValue } from "./types";
 import { IattributeList } from "../ICommon";
 import { ReadXml, Element, IStyleCollections, getColor, getlineStringAttr } from "./ReadXml";
 import { getXmlAttibute, getcellrange, escapeCharacter, isChinese, isJapanese, isKoera, getPxByEMUs } from "../common/method";
 import { ST_CellType, cellImagesRels } from "../common/constant"
 import { getBackgroundByFill, getFontStyle, handleBorder } from './style'
-import { ImageList } from "./LuckyImage";
+import { ImageList } from "./ExcelXmlImage";
 import { replaceSpecialWrap } from "../common/utils";
 
-export class UniverCell implements IluckySheetCelldata {
+export class UniverCell implements IExcelXmlSheetCelldata {
     r!: number
     c!: number
-    v!: IluckySheetCelldataValue | string | null
+    v!: IExcelXmlSheetCelldataValue | string | null
     _borderObject?: BorderCellForImp
     _fomulaRef!: string
     _formulaSi!: string
@@ -52,7 +52,7 @@ export class UniverCell implements IluckySheetCelldata {
 
         this.r = range.row[0];
         this.c = range.column[0];
-        this.v = this.generateValue(s, t) as unknown as IluckySheetCelldataValue;
+        this.v = this.generateValue(s, t) as unknown as IExcelXmlSheetCelldataValue;
 
     }
 
@@ -256,7 +256,7 @@ export class UniverCell implements IluckySheetCelldata {
                     cellValue.ht = 0;
                 }
                 else if (horizontal == "centerContinuous") {
-                    cellValue.ht = 0;//luckysheet unsupport
+                    cellValue.ht = 0;//excelXmlSheet unsupport
                 }
                 else if (horizontal == "left") {
                     cellValue.ht = 1;
@@ -265,16 +265,16 @@ export class UniverCell implements IluckySheetCelldata {
                     cellValue.ht = 2;
                 }
                 else if (horizontal == "distributed") {
-                    cellValue.ht = 0;//luckysheet unsupport
+                    cellValue.ht = 0;//excelXmlSheet unsupport
                 }
                 else if (horizontal == "fill") {
-                    cellValue.ht = 1;//luckysheet unsupport
+                    cellValue.ht = 1;//excelXmlSheet unsupport
                 }
                 else if (horizontal == "general") {
-                    cellValue.ht = 1;//luckysheet unsupport
+                    cellValue.ht = 1;//excelXmlSheet unsupport
                 }
                 else if (horizontal == "justify") {
-                    cellValue.ht = 0;//luckysheet unsupport
+                    cellValue.ht = 0;//excelXmlSheet unsupport
                 }
                 else {
                     cellValue.ht = 1;
@@ -289,10 +289,10 @@ export class UniverCell implements IluckySheetCelldata {
                     cellValue.vt = 0;
                 }
                 else if (vertical == "distributed") {
-                    cellValue.vt = 0;//luckysheet unsupport
+                    cellValue.vt = 0;//excelXmlSheet unsupport
                 }
                 else if (vertical == "justify") {
-                    cellValue.vt = 0;//luckysheet unsupport
+                    cellValue.vt = 0;//excelXmlSheet unsupport
                 }
                 else if (vertical == "top") {
                     cellValue.vt = 1;
@@ -320,35 +320,20 @@ export class UniverCell implements IluckySheetCelldata {
             }
 
             if (textRotation != undefined) {
-                // tr: number | undefined //Text rotation,0: 0、1: 45 、2: -45、3 Vertical text、4: 90 、5: -90, alignment
+                // tr: 3 表示竖排文字；rt 保存原始 textRotation 角度（0-180）
                 if (textRotation == "255") {
                     cellValue.tr = 3;
                 }
-                // else if(textRotation=="45"){
-                //     cellValue.tr = 1;
-                // }
-                // else if(textRotation=="90"){
-                //     cellValue.tr = 4;
-                // }
-                // else if(textRotation=="135"){
-                //     cellValue.tr = 2;
-                // }
-                // else if(textRotation=="180"){
-                //     cellValue.tr = 5;
-                // }
                 else {
-                    cellValue.tr = 0;
                     cellValue.rt = parseInt(textRotation);
                 }
+            }
 
+            if (shrinkToFit != undefined) {//excelXmlSheet unsupport
 
             }
 
-            if (shrinkToFit != undefined) {//luckysheet unsupport
-
-            }
-
-            if (indent != undefined) {//luckysheet unsupport
+            if (indent != undefined) {//excelXmlSheet unsupport
                 const result = parseInt(indent)
                 if (!isNaN(result)) {
                     cellValue.ti = result

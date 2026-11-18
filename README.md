@@ -16,7 +16,7 @@ Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出**、**上下
 ```text
 src/
 ├── import_export/
-│   ├── ToUniver/          # Excel -> ILuckyFile -> UniverWorkBook -> IWorkbookData
+│   ├── ToUniver/          # Excel -> IExcelXmlFile -> UniverWorkBook -> IWorkbookData
 │   ├── UniverToExcel/     # Univer -> Excel
 │   ├── UniverToCsv/       # Univer -> CSV
 │   └── common/            # 公共工具（XML、EMF、常量等）
@@ -26,7 +26,7 @@ src/
     └── print-area/        # 打印区域插件（蓝色虚线边界 + 设置/清除 + JSON 保存）
 ```
 
-> 说明：已移除原来的 `ToLuckySheet` / `LuckyToUniver` 中间层，`LuckyFile.Parse()` 现在直接返回 `ILuckyFile` 对象，再由 `UniverWorkBook` 生成 `IWorkbookData`，逻辑更少一层。
+> 说明：代码现在直接从 Excel XML 解析为 `IExcelXmlFile`，再由 `UniverWorkBook` 生成 `IWorkbookData`，不再经过额外的中间层。
 
 ## 本地构建与打包
 
@@ -169,31 +169,31 @@ univer.registerPlugin(UniverSheetsPrintAreaPlugin, {
 
 ## 直接使用转换工具
 
-插件内部使用 `LuckyExcel` 完成转换，也可以直接调用：
+插件内部使用 `ExcelXml` 完成转换，也可以直接调用：
 
 ```ts
-import { LuckyExcel } from 'univer-custom-menu';
+import { ExcelXml } from 'univer-custom-menu';
 
 // Excel -> Univer 工作簿数据
-LuckyExcel.transformExcelToUniver(file, (workbookData) => {
+ExcelXml.transformExcelToUniver(file, (workbookData) => {
   univer.createUniver(workbookData);
 });
 
 // Univer 工作簿数据 -> Excel
-await LuckyExcel.transformUniverToExcel({
+await ExcelXml.transformUniverToExcel({
   snapshot: workbookData,
   fileName: '导出.xlsx',
 });
 
 // Univer 工作簿数据 -> CSV
-await LuckyExcel.transformUniverToCsv({
+await ExcelXml.transformUniverToCsv({
   snapshot: workbookData,
   fileName: '导出.csv',
 });
 
-// 如果需要旧的 Luckysheet JSON 格式，仍可使用：
-LuckyExcel.transformExcelToLucky(file, (luckysheetFile, jsonString) => {
-  // luckysheetFile: ILuckyFile 对象
+// 如果需要中间 ExcelXml JSON 格式，仍可使用：
+ExcelXml.transformExcelToExcelXml(file, (excelXmlFile, jsonString) => {
+  // excelXmlFile: IExcelXmlFile 对象
   // jsonString: JSON 字符串
 });
 ```

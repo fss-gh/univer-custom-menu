@@ -1,4 +1,4 @@
-import { IluckysheetDataVerificationType } from "./ToUniver/types";
+import { IExcelXmlSheetDataVerificationType } from "./ToUniver/types";
 
 
 export interface IuploadfileList { 
@@ -18,7 +18,7 @@ export interface IattributeList {
 }
 
 export interface IDataVerificationMap {
-    [key: string]: IluckysheetDataVerificationType;
+    [key: string]: IExcelXmlSheetDataVerificationType;
 }
 
 export interface IDataVerificationType2Map {

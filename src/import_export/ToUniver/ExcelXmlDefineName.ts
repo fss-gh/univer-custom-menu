@@ -11,9 +11,9 @@ export interface IDefinedNameParam {
     hidden?: boolean;
 }
 export interface IDefinedNames {
-    [key: string]: LuckyDefineName
+    [key: string]: ExcelXmlDefineName
 }
-export class LuckyDefineNames {
+export class ExcelXmlDefineNames {
     defineNames: IDefinedNames;
     constructor(readXml: ReadXml) {
         let definedNames = readXml.getElementsByTagName("definedNames/definedName", workBookFile);
@@ -26,7 +26,7 @@ export class LuckyDefineNames {
             }
         };
         definedNames.forEach(d => {
-            const definedName = new LuckyDefineName(d)
+            const definedName = new ExcelXmlDefineName(d)
             if (validNames(definedName.name)) {
                 obj[definedName.id] = definedName
             }
@@ -34,7 +34,7 @@ export class LuckyDefineNames {
         this.defineNames = obj;
     }
 }
-export class LuckyDefineName implements IDefinedNameParam {
+export class ExcelXmlDefineName implements IDefinedNameParam {
     id: string;
     name: string;
     formulaOrRefString: string;

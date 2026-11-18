@@ -1,11 +1,11 @@
 import { columeHeader_word, columeHeader_word_index } from "./constant";
-import { IluckySheetSelection } from "../ToUniver/types";
+import { IExcelXmlSheetSelection } from "../ToUniver/types";
 import { IattributeList, stringToNum } from "../ICommon";
 import { customAlphabet, nanoid } from "nanoid";
 import { ReadXml } from "../ToUniver/ReadXml";
 
 
-export function getRangetxt(range: IluckySheetSelection, sheettxt: string) {
+export function getRangetxt(range: IExcelXmlSheetSelection, sheettxt: string) {
 
     let row0 = range["row"][0], row1 = range["row"][1];
     let column0 = range["column"][0], column1 = range["column"][1];

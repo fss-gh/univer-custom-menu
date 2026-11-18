@@ -60,7 +60,7 @@ export declare enum DataValidationRenderMode {
     ARROW = 1,
     CUSTOM = 2
 }
-export interface LuckyVerificationFormat {
+export interface ExcelXmlVerificationFormat {
     type: DataValidationType;
     allowBlank?: boolean;
     formula1?: string;
@@ -97,7 +97,7 @@ export interface LuckyVerificationFormat {
     uid: string;
     ranges: IRange[];
 }
-export class LuckyVerification implements LuckyVerificationFormat {
+export class ExcelXmlVerification implements ExcelXmlVerificationFormat {
     type!: DataValidationType;
     allowBlank?: boolean;
     formula1?: string;

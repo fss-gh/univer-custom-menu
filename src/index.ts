@@ -52,6 +52,6 @@ export type {
 } from './plugin/print-area/types';
 
 /** Excel 转换工具（需要时可直接使用） */
-export { LuckyExcel } from './import_export';
+export { ExcelXml } from './import_export';
 /** 文件选择工具 */
 export { waitUserSelectExcelFile } from './utils';

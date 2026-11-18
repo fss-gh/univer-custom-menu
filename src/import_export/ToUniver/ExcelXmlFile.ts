@@ -1,14 +1,14 @@
-﻿import { ILuckyFile,IluckySheetRowAndColumnHidden,IluckySheetRowAndColumnLen} from "./types";
-import { LuckySheet} from "./LuckySheet";
+﻿import { IExcelXmlFile,IExcelXmlSheetRowAndColumnHidden,IExcelXmlSheetRowAndColumnLen} from "./types";
+import { ExcelXmlSheet} from "./ExcelXmlSheet";
 import {IuploadfileList, IattributeList} from "../ICommon";
 import {workBookFile, coreFile, appFile, stylesFile, sharedStringsFile,numFmtDefault,theme1File,calcChainFile,workbookRels, numFmtDefaultMap, cellImages} from "../common/constant";
 import { ReadXml,IStyleCollections,Element } from "./ReadXml";
 import {getXmlAttibute} from "../common/method";
-import { LuckyFileBase,LuckyFileInfo,LuckySheetBase,LuckySheetCelldataBase, WorkBookInfo } from "./LuckyBase";
-import {ImageList} from "./LuckyImage";
-import { LuckyDefineNames } from "./LuckyDefineName";
+import { ExcelXmlFileBase,ExcelXmlFileInfo,ExcelXmlSheetBase,ExcelXmlSheetCelldataBase, WorkBookInfo } from "./ExcelXmlBase";
+import {ImageList} from "./ExcelXmlImage";
+import { ExcelXmlDefineNames } from "./ExcelXmlDefineName";
 
-export class LuckyFile extends LuckyFileBase {
+export class ExcelXmlFile extends ExcelXmlFileBase {
 
     private files:IuploadfileList
     private sheetNameList!:IattributeList
@@ -111,7 +111,7 @@ export class LuckyFile extends LuckyFileBase {
         let lastModifiedBy = this.readXml.getElementsByTagName("cp:lastModifiedBy", coreFile);
         let created = this.readXml.getElementsByTagName("dcterms:created", coreFile);
         let modified = this.readXml.getElementsByTagName("dcterms:modified", coreFile);
-        this.info = new LuckyFileInfo();
+        this.info = new ExcelXmlFileInfo();
         this.info.name = this.fileName;
         this.info.creator = creator.length>0?creator[0].value:"";
         this.info.lastmodifiedby = lastModifiedBy.length>0?lastModifiedBy[0].value:"";
@@ -152,7 +152,7 @@ export class LuckyFile extends LuckyFileBase {
             }
 
             if(sheetFile!=null){
-                let sheet = new LuckySheet(sheetName, sheetId, order, isInitialCell,
+                let sheet = new ExcelXmlSheet(sheetName, sheetId, order, isInitialCell,
                     {
                         sheetFile:sheetFile,
                         readXml:this.readXml,
@@ -181,7 +181,7 @@ export class LuckyFile extends LuckyFileBase {
     private columnWidthSet:number[] = [];
     private rowHeightSet:number[] = [];
 
-    private extendArray(index:number, sets:number[],def:number, hidden:IluckySheetRowAndColumnHidden, lens:IluckySheetRowAndColumnLen){
+    private extendArray(index:number, sets:number[],def:number, hidden:IExcelXmlSheetRowAndColumnHidden, lens:IExcelXmlSheetRowAndColumnLen){
         if(index<sets.length){
             return;
         }
@@ -209,7 +209,7 @@ export class LuckyFile extends LuckyFileBase {
         }
     }
 
-    private imagePositionCaculation(sheet:LuckySheet){
+    private imagePositionCaculation(sheet:ExcelXmlSheet){
         let images = sheet.images, defaultColWidth = sheet.defaultColWidth, defaultRowHeight = sheet.defaultRowHeight;
         let colhidden = {};
         if(sheet.config.colhidden){
@@ -232,7 +232,7 @@ export class LuckyFile extends LuckyFileBase {
         }
 
         for(let key in images){
-            let imageObject:any = images[key];//Image, luckyImage
+            let imageObject:any = images[key];//Image, ExcelXmlImage
             let fromCol = imageObject.fromCol;
             let fromColOff = imageObject.fromColOff;
             let fromRow = imageObject.fromRow;
@@ -350,7 +350,7 @@ export class LuckyFile extends LuckyFileBase {
 
     private handleWorkBookInfo = () => {
         this.workbook = new WorkBookInfo();
-        const defineNames = new LuckyDefineNames(this.readXml)
+        const defineNames = new ExcelXmlDefineNames(this.readXml)
         if (defineNames?.defineNames) this.workbook.defineNames = defineNames.defineNames
     }
 
@@ -362,9 +362,9 @@ export class LuckyFile extends LuckyFileBase {
     }
 
     /**
-    * @return LuckySheet file json
+    * @return ExcelXmlSheet file json
     */
-    Parse(): ILuckyFile {
+    Parse(): IExcelXmlFile {
         // let xml = this.readXml;
         // for(let key in this.sheetNameList){
         //     let sheetName=this.sheetNameList[key];
@@ -401,15 +401,15 @@ export class LuckyFile extends LuckyFileBase {
         return this.toJsonString(this);
     }
 
-    private toJsonString(file:ILuckyFile):ILuckyFile {
-        let LuckyOutPutFile = new LuckyFileBase();
-        LuckyOutPutFile.info = file.info;
-        LuckyOutPutFile.workbook = file.workbook;
-        LuckyOutPutFile.sheets = [];
+    private toJsonString(file:IExcelXmlFile):IExcelXmlFile {
+        let ExcelXmlOutPutFile = new ExcelXmlFileBase();
+        ExcelXmlOutPutFile.info = file.info;
+        ExcelXmlOutPutFile.workbook = file.workbook;
+        ExcelXmlOutPutFile.sheets = [];
 
         file.sheets.forEach((sheet)=>{
-            let sheetout = new LuckySheetBase();
-            //let attrName = ["name","color","config","index","status","order","row","column","luckysheet_select_save","scrollLeft","scrollTop","zoomRatio","showGridLines","defaultColWidth","defaultRowHeight","celldata","chart","isPivotTable","pivotTable","luckysheet_conditionformat_save","freezen","calcChain"];
+            let sheetout = new ExcelXmlSheetBase();
+            //let attrName = ["name","color","config","index","status","order","row","column","excelXmlSelectSave","scrollLeft","scrollTop","zoomRatio","showGridLines","defaultColWidth","defaultRowHeight","celldata","chart","isPivotTable","pivotTable","excelXmlConditionFormatSave","freezen","calcChain"];
 
             if(sheet.name!=null){
                 sheetout.name = sheet.name;
@@ -446,8 +446,8 @@ export class LuckyFile extends LuckyFileBase {
                 sheetout.column = sheet.column;
             }
 
-            if(sheet.luckysheet_select_save!=null){
-                sheetout.luckysheet_select_save = sheet.luckysheet_select_save;
+            if(sheet.excelXmlSelectSave!=null){
+                sheetout.excelXmlSelectSave = sheet.excelXmlSelectSave;
             }
 
             if(sheet.scrollLeft!=null){
@@ -478,7 +478,7 @@ export class LuckyFile extends LuckyFileBase {
                 // sheetout.celldata = sheet.celldata;
                 sheetout.celldata = [];
                 sheet.celldata.forEach((cell)=>{
-                    let cellout = new LuckySheetCelldataBase();
+                    let cellout = new ExcelXmlSheetCelldataBase();
                     cellout.r = cell.r;
                     cellout.c = cell.c;
                     cellout.v = cell.v;
@@ -498,8 +498,8 @@ export class LuckyFile extends LuckyFileBase {
                 sheetout.pivotTable = sheet.pivotTable;
             }
 
-            if(sheet.luckysheet_conditionformat_save!=null){
-                sheetout.luckysheet_conditionformat_save = sheet.luckysheet_conditionformat_save;
+            if(sheet.excelXmlConditionFormatSave!=null){
+                sheetout.excelXmlConditionFormatSave = sheet.excelXmlConditionFormatSave;
             }
 
             if(sheet.freezen!=null){
@@ -542,10 +542,10 @@ export class LuckyFile extends LuckyFileBase {
                 sheetout.filter = sheet.filter;
             }
             
-            LuckyOutPutFile.sheets.push(sheetout);
+            ExcelXmlOutPutFile.sheets.push(sheetout);
         });
 
-        return LuckyOutPutFile;
+        return ExcelXmlOutPutFile;
     }
 
 

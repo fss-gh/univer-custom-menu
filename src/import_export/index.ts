@@ -1,5 +1,5 @@
-import { LuckyFile } from "./ToUniver/LuckyFile";
-import { ILuckyFile } from "./ToUniver/types";
+import { ExcelXmlFile } from "./ToUniver/ExcelXmlFile";
+import { IExcelXmlFile } from "./ToUniver/types";
 // import {SecurityDoor,Car} from './content';
 
 import { HandleZip } from './HandleZip';
@@ -14,10 +14,10 @@ import { UniverWorkBook } from "./ToUniver/UniverWorkBook";
 import { IWorkbookData } from "@univerjs/core";
 import { formatSheetData, getDataByFile } from "./common/utils";
 import { UniverCsvWorkBook } from "./ToUniver/UniverCsvWorkBook";
-export class LuckyExcel {
+export class ExcelXml {
     constructor() { }
-    static transformExcelToLucky(excelFile: File,
-        callback?: (files: ILuckyFile, fs?: string) => void,
+    static transformExcelToExcelXml(excelFile: File,
+        callback?: (files: IExcelXmlFile, fs?: string) => void,
         errorHandler?: (err: Error) => void) {
         let handleZip: HandleZip = new HandleZip(excelFile);
 
@@ -31,12 +31,12 @@ export class LuckyExcel {
         // fileReader.readAsArrayBuffer(excelFile)
 
         handleZip.unzipFile(function (files: IuploadfileList) {
-            let luckyFile = new LuckyFile(files, excelFile.name);
-            const exportJson = luckyFile.Parse();
-            const luckysheetfile = JSON.stringify(exportJson);
+            let excelXmlFile = new ExcelXmlFile(files, excelFile.name);
+            const exportJson = excelXmlFile.Parse();
+            const excelXmlJson = JSON.stringify(exportJson);
             console.log('output---->', exportJson)
             if (callback != undefined) {
-                callback(exportJson, luckysheetfile);
+                callback(exportJson, excelXmlJson);
             }
         },
             function (err: Error) {
@@ -48,18 +48,18 @@ export class LuckyExcel {
             });
     }
 
-    static transformExcelToLuckyByUrl(
+    static transformExcelToExcelXmlByUrl(
         url: string,
         name: string,
-        callBack?: (files: ILuckyFile, fs?: string) => void,
+        callBack?: (files: IExcelXmlFile, fs?: string) => void,
         errorHandler?: (err: Error) => void) {
         let handleZip: HandleZip = new HandleZip();
         handleZip.unzipFileByUrl(url, function (files: IuploadfileList) {
-            let luckyFile = new LuckyFile(files, name);
-            const exportJson = luckyFile.Parse();
-            const luckysheetfile = JSON.stringify(exportJson);
+            let excelXmlFile = new ExcelXmlFile(files, name);
+            const exportJson = excelXmlFile.Parse();
+            const excelXmlJson = JSON.stringify(exportJson);
             if (callBack != undefined) {
-                callBack(exportJson, luckysheetfile);
+                callBack(exportJson, excelXmlJson);
             }
         },
             function (err: Error) {
@@ -81,8 +81,8 @@ export class LuckyExcel {
 
         handleZip.unzipFile(function (files: IuploadfileList) {
             console.log('input------>', files);
-            let luckyFile = new LuckyFile(files, excelFile.name);
-            const exportJson = luckyFile.Parse();
+            let excelXmlFile = new ExcelXmlFile(files, excelFile.name);
+            const exportJson = excelXmlFile.Parse();
             console.log('output---->', exportJson, files)
             if (callback != undefined) {
                 const univerData = new UniverWorkBook(exportJson)

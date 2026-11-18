@@ -2,7 +2,7 @@ import { getXmlAttibute } from "../common/method";
 import { FrozenData } from "./types";
 import { Element } from "./ReadXml";
 
-export class LuckyFreezen implements FrozenData {
+export class ExcelXmlFreezen implements FrozenData {
     horizen: number;
     vertical: number;
     constructor(pane: Element) {

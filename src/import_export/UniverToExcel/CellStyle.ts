@@ -1,5 +1,6 @@
 import { Style } from "@zwight/exceljs";
 import { hex2argb, isUndefined } from "./util";
+import { BooleanNumber } from "@univerjs/core";
 
 export function cellStyle(style: any = {}, numFmt: any, isCondition = false): Style {
     return {
@@ -81,6 +82,15 @@ function borderConvert(border: any) {
     }
 
 }
+function textRotationConvert(tr: any): number | 'vertical' | undefined {
+    if (!tr) return undefined;
+    if (tr.v === BooleanNumber.TRUE) return 'vertical';
+    if (tr.a === undefined) return undefined;
+    // Univer 的 a 是画布角度（负=逆时针/上倾，正=顺时针/下倾）；
+    // ExcelJS 的 textRotation 符号相反（正=逆时针/上倾，负=顺时针/下倾），因此取反。
+    return -tr.a;
+}
+
 function alignmentConvert(style: any) {
     const univerToExcel: any = {
         horizontal: {
@@ -102,7 +112,7 @@ function alignmentConvert(style: any) {
         horizontal: isUndefined(style.ht, univerToExcel.horizontal[style.ht]),
         vertical: isUndefined(style.vt, univerToExcel.vertical[style.vt]),
         wrapText: isUndefined(style.tb, style.tb === 3),
-        textRotation: isUndefined(style.tr?.a)
+        textRotation: textRotationConvert(style.tr)
     }
 }
 

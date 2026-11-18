@@ -1,19 +1,19 @@
-﻿import { IluckyImageBorder, IluckyImageCrop, IluckyImageDefault, IluckyImages, IluckySheetCelldata, IluckySheetCelldataValue, IMapluckySheetborderInfoCellForImp, IluckySheetborderInfoCellValue, IluckySheetborderInfoCellValueStyle, IluckySheetborderInfoCellForImp, IFormulaSI, IluckySheetRowAndColumnLen, IluckySheetRowAndColumnHidden, IluckySheetSelection, IcellOtherInfo, IformulaList, IformulaListItem, IluckysheetHyperlink, IluckysheetHyperlinkType, IluckysheetDataVerification } from "./types";
+﻿import { IExcelXmlImageBorder, IExcelXmlImageCrop, IExcelXmlImageDefault, IExcelXmlImages, IExcelXmlSheetCelldata, IExcelXmlSheetCelldataValue, IMapExcelXmlSheetborderInfoCellForImp, IExcelXmlSheetborderInfoCellValue, IExcelXmlSheetborderInfoCellValueStyle, IExcelXmlSheetborderInfoCellForImp, IFormulaSI, IExcelXmlSheetRowAndColumnLen, IExcelXmlSheetRowAndColumnHidden, IExcelXmlSheetSelection, IcellOtherInfo, IformulaList, IformulaListItem, IExcelXmlSheetHyperlink, IExcelXmlSheetHyperlinkType, IExcelXmlSheetDataVerification } from "./types";
 import { UniverCell } from "./UniverCell";
 import { IattributeList } from "../ICommon";
 import { getXmlAttibute, getColumnWidthPixel, fromulaRef, getRowHeightPixel, getcellrange, generateRandomIndex, getPxByEMUs, getMultiSequenceToNum, getTransR1C1ToSequence, getPeelOffX14, getMultiFormulaValue } from "../common/method";
 import { borderTypes, COMMON_TYPE2, DATA_VERIFICATION_MAP, DATA_VERIFICATION_TYPE2_MAP, worksheetFilePath } from "../common/constant";
 import { ReadXml, IStyleCollections, Element, getColor } from "./ReadXml";
-import { LuckyFileBase, LuckySheetBase, LuckyConfig, LuckySheetborderInfoCellForImp, LuckySheetborderInfoCellValue, LuckysheetCalcChain, LuckySheetConfigMerge } from "./LuckyBase";
-import { ImageList } from "./LuckyImage";
+import { ExcelXmlFileBase, ExcelXmlSheetBase, ExcelXmlConfig, ExcelXmlSheetborderInfoCellForImp, ExcelXmlSheetborderInfoCellValue, ExcelXmlSheetCalcChain, ExcelXmlSheetConfigMerge } from "./ExcelXmlBase";
+import { ImageList } from "./ExcelXmlImage";
 import dayjs from "dayjs";
-import { LuckyCondition } from "./LuckyCondition";
-import { LuckyVerification } from "./LuckyVerification";
-import { LuckFilter } from "./luckyFilter";
-import { LuckyFreezen } from './luckyFreezen'
-import { ChartImageGroup } from './LuckyChart'
+import { ExcelXmlCondition } from "./ExcelXmlCondition";
+import { ExcelXmlVerification } from "./ExcelXmlVerification";
+import { ExcelXmlFilter } from "./ExcelXmlFilter";
+import { ExcelXmlFreezen } from './ExcelXmlFreezen'
+import { ChartImageGroup } from './ExcelXmlChart'
 
-export class LuckySheet extends LuckySheetBase {
+export class ExcelXmlSheet extends ExcelXmlSheetBase {
 
     private readXml: ReadXml
     private sheetFile: string
@@ -47,7 +47,7 @@ export class LuckySheet extends LuckySheetBase {
         this.name = sheetName;
         this.index = sheetId;
         this.order = sheetOrder.toString();
-        this.config = new LuckyConfig();
+        this.config = new ExcelXmlConfig();
         this.celldata = [];
         this.mergeCells = this.readXml.getElementsByTagName("mergeCells/mergeCell", this.sheetFile);
         let clrScheme = this.styles["clrScheme"] as Element[];
@@ -63,14 +63,14 @@ export class LuckySheet extends LuckySheetBase {
             let selections = sheetView[0].getInnerElements("selection");
             if (selections != null && selections.length > 0) {
                 activeCell = getXmlAttibute(selections[0].attributeList, "activeCell", "A1")!;
-                let range: IluckySheetSelection = getcellrange(activeCell)!;
-                this.luckysheet_select_save = [];
-                this.luckysheet_select_save.push(range);
+                let range: IExcelXmlSheetSelection = getcellrange(activeCell)!;
+                this.excelXmlSelectSave = [];
+                this.excelXmlSelectSave.push(range);
             }
 
             let pane = sheetView[0].getInnerElements("pane") || [];
             if (pane?.length > 0) {
-                this.freezen = new LuckyFreezen(pane[0])
+                this.freezen = new ExcelXmlFreezen(pane[0])
             }
         }
         this.showGridLines = showGridLines;
@@ -114,7 +114,7 @@ export class LuckySheet extends LuckySheetBase {
             let r = attrList.r || '', i = attrList.i, l = attrList.l, s = attrList.s, a = attrList.a, t = attrList.t;
 
             let range = getcellrange(r)!;
-            let chain = new LuckysheetCalcChain();
+            let chain = new ExcelXmlSheetCalcChain();
             chain.r = range.row[0];
             chain.c = range.column[0];
             chain.index = this.index;
@@ -161,10 +161,10 @@ export class LuckySheet extends LuckySheetBase {
 
                     // console.log(offsetRow, offsetCol, func);
 
-                    (cellValue.v as IluckySheetCelldataValue).f = func;
+                    (cellValue.v as IExcelXmlSheetCelldataValue).f = func;
 
                     //添加共享公式链
-                    let chain = new LuckysheetCalcChain();
+                    let chain = new ExcelXmlSheetCalcChain();
                     chain.r = cellValue.r;
                     chain.c = cellValue.c;
                     chain.index = this.index;
@@ -178,7 +178,7 @@ export class LuckySheet extends LuckySheetBase {
         for (let key in cellOtherInfo.formulaList) {
             if (!(key in formulaListExist)) {
                 let formulaListItem = cellOtherInfo.formulaList[key]!;
-                let chain = new LuckysheetCalcChain();
+                let chain = new ExcelXmlSheetCalcChain();
                 chain.r = formulaListItem.r;
                 chain.c = formulaListItem.c;
                 chain.index = this.index;
@@ -212,11 +212,11 @@ export class LuckySheet extends LuckySheetBase {
                 }))
             })?.flat().filter(Boolean).concat(extLstRule?.filter((d: any) => conditionList.findIndex(condition => condition.attributeList.sqref === d.parentAttribute.sqref) === -1)) || [];
 
-            this.conditionalFormatting = ruleList.map((d: any) => new LuckyCondition(d, this.readXml, this.styles));
+            this.conditionalFormatting = ruleList.map((d: any) => new ExcelXmlCondition(d, this.readXml, this.styles));
             // console.log(ruleList, allFileOption, this.conditionalFormatting)
         }
         // console.log(allFileOption)
-        const filter = new LuckFilter(this.readXml, this.sheetFile)
+        const filter = new ExcelXmlFilter(this.readXml, this.sheetFile)
         if (filter.ref) this.filter = filter;
 
         // dataVerification config
@@ -238,7 +238,7 @@ export class LuckySheet extends LuckySheetBase {
                     continue;
                 }
                 let range = getcellrange(ref)!;
-                let mergeValue = new LuckySheetConfigMerge();
+                let mergeValue = new ExcelXmlSheetConfigMerge();
                 mergeValue.r = range.row[0];
                 mergeValue.c = range.column[0];
                 mergeValue.rs = range.row[1] - range.row[0] + 1;
@@ -313,7 +313,7 @@ export class LuckySheet extends LuckySheetBase {
                     imageObject.fixedLeft = 0;
                     imageObject.fixedTop = 0;
 
-                    let imageBorder: IluckyImageBorder = {
+                    let imageBorder: IExcelXmlImageBorder = {
                         color: "#000",
                         radius: 0,
                         style: "solid",
@@ -321,7 +321,7 @@ export class LuckySheet extends LuckySheetBase {
                     }
                     imageObject.border = imageBorder;
 
-                    let imageCrop: IluckyImageCrop = {
+                    let imageCrop: IExcelXmlImageCrop = {
                         height: cy_n,
                         offsetLeft: 0,
                         offsetTop: 0,
@@ -329,7 +329,7 @@ export class LuckySheet extends LuckySheetBase {
                     }
                     imageObject.crop = imageCrop;
 
-                    let imageDefault: IluckyImageDefault = {
+                    let imageDefault: IExcelXmlImageDefault = {
                         height: cy_n,
                         left: x_n,
                         top: y_n,
@@ -422,7 +422,7 @@ export class LuckySheet extends LuckySheetBase {
     }
 
     /**
-    * @desc This will convert cols/col to luckysheet config of column'width
+    * @desc This will convert cols/col to excelXmlSheet config of column'width
     */
     private generateConfigColumnLenAndHidden() {
         let cols = this.readXml.getElementsByTagName("cols/col", this.sheetFile);
@@ -468,7 +468,7 @@ export class LuckySheet extends LuckySheetBase {
     }
 
     /**
-    * @desc This will convert cols/col to luckysheet config of column'width
+    * @desc This will convert cols/col to excelXmlSheet config of column'width
     */
     private generateConfigRowLenAndHiddenAddCell(): IcellOtherInfo {
         let rows = this.readXml.getElementsByTagName("sheetData/row", this.sheetFile);
@@ -531,7 +531,7 @@ export class LuckySheet extends LuckySheetBase {
                         if (this.config.borderInfo == null) {
                             this.config.borderInfo = [];
                         }
-                        this.config.borderInfo.push(cellValue._borderObject as unknown as IluckySheetborderInfoCellForImp);
+                        this.config.borderInfo.push(cellValue._borderObject as unknown as IExcelXmlSheetborderInfoCellForImp);
                         delete cellValue._borderObject;
                     }
 
@@ -546,10 +546,10 @@ export class LuckySheet extends LuckySheetBase {
                     //     }
                     //     else{
                     //         let border = borders[borderId];
-                    //         let borderObject = new LuckySheetborderInfoCellForImp();
+                    //         let borderObject = new ExcelXmlSheetborderInfoCellForImp();
                     //         borderObject.rangeType = "cellGroup";
                     //         borderObject.cells = [];
-                    //         let borderCellValue = new LuckySheetborderInfoCellValue();
+                    //         let borderCellValue = new ExcelXmlSheetborderInfoCellValue();
 
                     //         let lefts = border.getInnerElements("left");
                     //         let rights = border.getInnerElements("right");
@@ -602,7 +602,7 @@ export class LuckySheet extends LuckySheetBase {
 
                         let fv;
                         if (cellValue.v != null) {
-                            fv = (cellValue.v as IluckySheetCelldataValue).f;
+                            fv = (cellValue.v as IExcelXmlSheetCelldataValue).f;
                         }
 
                         let refValue = {
@@ -624,7 +624,7 @@ export class LuckySheet extends LuckySheetBase {
                     }
 
                     //There may be formulas that do not appear in calcChain
-                    if (cellValue.v != null && (cellValue.v as IluckySheetCelldataValue).f != null) {
+                    if (cellValue.v != null && (cellValue.v as IExcelXmlSheetCelldataValue).f != null) {
                         let formulaCell: IformulaListItem = {
                             r: cellValue.r,
                             c: cellValue.c
@@ -652,14 +652,14 @@ export class LuckySheet extends LuckySheetBase {
             ) || [];
 
         rows = rows.concat(extLst);
-        return rows.map(d => new LuckyVerification(d, extLst)).filter(d => d.uid)
+        return rows.map(d => new ExcelXmlVerification(d, extLst)).filter(d => d.uid)
     }
     /**
-     * luckysheet config of dataValidations
+     * excelXmlSheet config of dataValidations
      * 
-     * @returns {IluckysheetDataVerification} - dataValidations config
+     * @returns {IExcelXmlSheetDataVerification} - dataValidations config
      */
-    private generateConfigDataValidations(): IluckysheetDataVerification {
+    private generateConfigDataValidations(): IExcelXmlSheetDataVerification {
 
         let rows = this.readXml.getElementsByTagName(
             "dataValidations/dataValidation",
@@ -673,7 +673,7 @@ export class LuckySheet extends LuckySheetBase {
 
         rows = rows.concat(extLst);
 
-        let dataVerification: IluckysheetDataVerification = {};
+        let dataVerification: IExcelXmlSheetDataVerification = {};
 
         for (let i = 0; i < rows.length; i++) {
             let row = rows[i];
@@ -766,16 +766,16 @@ export class LuckySheet extends LuckySheetBase {
     }
 
     /**
-     * luckysheet config of hyperlink
+     * excelXmlSheet config of hyperlink
      * 
-     * @returns {IluckysheetHyperlink} - hyperlink config
+     * @returns {IExcelXmlSheetHyperlink} - hyperlink config
      */
-    private generateConfigHyperlinks(): IluckysheetHyperlink {
+    private generateConfigHyperlinks(): IExcelXmlSheetHyperlink {
         let rows = this.readXml.getElementsByTagName(
             "hyperlinks/hyperlink",
             this.sheetFile
         );
-        let hyperlink: IluckysheetHyperlink = {};
+        let hyperlink: IExcelXmlSheetHyperlink = {};
         for (let i = 0; i < rows.length; i++) {
             let row = rows[i];
             let attrList = row.attributeList;
@@ -784,7 +784,7 @@ export class LuckySheet extends LuckySheetBase {
                 _display = getXmlAttibute(attrList, "display", null),
                 _address = getXmlAttibute(attrList, "location", null),
                 _tooltip = getXmlAttibute(attrList, "tooltip", null);
-            let _type: IluckysheetHyperlinkType = _address ? "internal" : "external";
+            let _type: IExcelXmlSheetHyperlinkType = _address ? "internal" : "external";
 
             // external hyperlink
             if (!_address) {
@@ -803,7 +803,7 @@ export class LuckySheet extends LuckySheetBase {
                     _address = findRid.attributeList["Target"];
                     _type = findRid.attributeList[
                         "TargetMode"
-                    ]?.toLocaleLowerCase() as IluckysheetHyperlinkType;
+                    ]?.toLocaleLowerCase() as IExcelXmlSheetHyperlinkType;
                 }
             }
 
@@ -827,7 +827,7 @@ export class LuckySheet extends LuckySheetBase {
         return hyperlink;
     }
 
-    // private getBorderInfo(borders:Element[]):LuckySheetborderInfoCellValueStyle{
+    // private getBorderInfo(borders:Element[]):ExcelXmlSheetborderInfoCellValueStyle{
     //     if(borders==null){
     //         return null;
     //     }
@@ -846,7 +846,7 @@ export class LuckySheet extends LuckySheetBase {
     //         colorRet = getColor(color, clrScheme);
     //     }
 
-    //     let ret = new LuckySheetborderInfoCellValueStyle();
+    //     let ret = new ExcelXmlSheetborderInfoCellValueStyle();
     //     ret.style = borderTypes[style];
     //     ret.color = colorRet;
 

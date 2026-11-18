@@ -13,15 +13,15 @@ import { HyperLink, UniverSheet } from './UniverSheet';
 import { handleStyle } from './utils';
 import { PRINT_AREA_PLUGIN_NAME } from '../../plugin/print-area/types';
 import { generateRandomId } from '../common/method';
-import { IluckySheet, ILuckyFile, IWorkBookInfo } from './types';
-import { ImageSourceType } from './ILuckInterface';
+import { IExcelXmlSheet, IExcelXmlFile, IWorkBookInfo } from './types';
+import { ImageSourceType } from './ExcelXmlInterface';
 import { handleRanges } from './style';
 
 interface Sheets {
     [sheetId: string]: Partial<IWorksheetData & { hyperLink: HyperLink[] }>;
 }
-interface LuckySheetObj {
-    [sheetId: string]: Partial<IluckySheet>;
+interface ExcelXmlSheetObj {
+    [sheetId: string]: Partial<IExcelXmlSheet>;
 }
 export class UniverWorkBook implements IWorkbookData {
     id!: string;
@@ -33,7 +33,7 @@ export class UniverWorkBook implements IWorkbookData {
     sheetOrder!: string[];
     sheets!: Sheets;
     resources?: IResources | undefined = [];
-    constructor(file: ILuckyFile) {
+    constructor(file: IExcelXmlFile) {
         const { info, sheets, workbook } = file;
         this.id = generateRandomId(6);
         this.name = info.name;
@@ -42,7 +42,7 @@ export class UniverWorkBook implements IWorkbookData {
 
         const workSheets: Sheets = {},
             order: string[] = [],
-            sheetsObj: LuckySheetObj = {};
+            sheetsObj: ExcelXmlSheetObj = {};
         sheets
             .sort((a, b) => Number(a.order) - Number(b.order))
             .forEach((d) => {
@@ -111,7 +111,7 @@ export class UniverWorkBook implements IWorkbookData {
             data: JSON.stringify(hyperLinks),
         });
     };
-    private handleImage = (workSheets: Sheets, sheets: IluckySheet[]) => {
+    private handleImage = (workSheets: Sheets, sheets: IExcelXmlSheet[]) => {
         const drawerList: {
             [key: string]: { order: string[]; data: { [key: string]: any } };
         } = {};
@@ -202,7 +202,7 @@ export class UniverWorkBook implements IWorkbookData {
         });
     };
 
-    private handleChart = (workSheets: Sheets, sheets: IluckySheet[]) => {
+    private handleChart = (workSheets: Sheets, sheets: IExcelXmlSheet[]) => {
         const chartList: {
             [key: string]: any
         } = {};
@@ -318,7 +318,7 @@ export class UniverWorkBook implements IWorkbookData {
             column: column - 1,
         };
     };
-    private handleCondition = (sheets: LuckySheetObj) => {
+    private handleCondition = (sheets: ExcelXmlSheetObj) => {
         const obj: any = {};
         Object.keys(sheets).forEach((d) => {
             const condition = sheets[d].conditionalFormatting?.map((d: any) => {
@@ -338,7 +338,7 @@ export class UniverWorkBook implements IWorkbookData {
         });
     };
 
-    private handleVerification = (sheets: LuckySheetObj) => {
+    private handleVerification = (sheets: ExcelXmlSheetObj) => {
         const obj: any = {};
         Object.keys(sheets).forEach((d) => {
             obj[d] = sheets[d].dataVerificationList;
@@ -348,7 +348,7 @@ export class UniverWorkBook implements IWorkbookData {
             data: JSON.stringify(obj),
         });
     };
-    private handleFilter = (sheets: LuckySheetObj) => {
+    private handleFilter = (sheets: ExcelXmlSheetObj) => {
         const obj: any = {};
         Object.keys(sheets).forEach((d) => {
             obj[d] = sheets[d].filter;

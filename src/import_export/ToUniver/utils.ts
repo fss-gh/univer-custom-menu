@@ -11,7 +11,7 @@ import {
     IStyleBase,
 } from '@univerjs/core';
 import { isObject } from '../common/method';
-import { IluckySheetborderInfoCellForImp, IluckySheetborderInfoCellValueStyle, IluckySheetCelldata } from './types';
+import { IExcelXmlSheetborderInfoCellForImp, IExcelXmlSheetborderInfoCellValueStyle, IExcelXmlSheetCelldata } from './types';
 
 /**
  * 删除对象中含undefined的值
@@ -31,8 +31,8 @@ export function removeEmptyAttr(object: any) {
     return object;
 }
 export const handleStyle = (
-    row: IluckySheetCelldata,
-    borderInfo?: IluckySheetborderInfoCellForImp,
+    row: IExcelXmlSheetCelldata,
+    borderInfo?: IExcelXmlSheetborderInfoCellForImp,
     domContent: boolean = false
 ) => {
     const { v } = row;
@@ -48,8 +48,8 @@ export const handleStyle = (
     let border: Nullable<IBorderData> = undefined;
     if (borderInfo?.value && !domContent) {
         const handleBorder: (
-            con: IluckySheetborderInfoCellValueStyle
-        ) => IBorderStyleData | null = (con: IluckySheetborderInfoCellValueStyle) => {
+            con: IExcelXmlSheetborderInfoCellValueStyle
+        ) => IBorderStyleData | null = (con: IExcelXmlSheetborderInfoCellValueStyle) => {
             if (!con) return null;
             return {
                 s: con.style,
@@ -71,16 +71,17 @@ export const handleStyle = (
         2: WrapStrategy.WRAP,
     };
 
-    let angle = undefined;
-    const vtMap: any = {
-        1: 45,
-        2: 135,
-        3: 255,
-        4: 90,
-        5: 180,
-    };
-    if (v.tr) angle = vtMap[v.tr];
-    if (v.rt) angle = v.rt;
+    let angle: number | undefined;
+    let isVertical = BooleanNumber.FALSE;
+    if (v.tr === 3) {
+        // 竖排文字
+        angle = 0;
+        isVertical = BooleanNumber.TRUE;
+    } else if (v.rt !== undefined) {
+        // Excel textRotation：0-90 为逆时针（上倾），91-180 为顺时针（下倾）
+        // Univer 角度：负数表示逆时针/上倾，正数表示顺时针/下倾
+        angle = v.rt <= 90 ? -v.rt : v.rt - 90;
+    }
     const unMap: any = {
         0: TextDecoration.DASH,
         1: TextDecoration.SINGLE,
@@ -117,7 +118,7 @@ export const handleStyle = (
             angle !== undefined
                 ? {
                       a: angle,
-                      v: v.tr || v.rt ? BooleanNumber.TRUE : BooleanNumber.FALSE,
+                      ...(isVertical === BooleanNumber.TRUE ? { v: BooleanNumber.TRUE } : {}),
                   }
                 : undefined, // textRotation
         ul:

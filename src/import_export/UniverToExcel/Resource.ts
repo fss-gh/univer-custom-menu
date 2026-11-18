@@ -1,6 +1,6 @@
 import { Anchor, Workbook, Worksheet } from "@zwight/exceljs";
 import { escapeCharacter, getEmusByPx, getRangetxt, isEmpty, jsonParse, removeEmptyAttr, str2num } from "../common/method";
-import { CFRuleType, CFSubRuleType } from "../ToUniver/LuckyCondition";
+import { CFRuleType, CFSubRuleType } from "../ToUniver/ExcelXmlCondition";
 import { hex2argb } from "./util";
 import { cellStyle } from "./CellStyle";
 

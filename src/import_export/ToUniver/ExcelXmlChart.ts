@@ -89,7 +89,7 @@ const getChartType = (readXml: ReadXml, chartFile: string) => {
         chartType
     }
 }
-export class LuckyChartImage implements ChartImageObject {
+export class ExcelXmlChartImage implements ChartImageObject {
     id: string
     src?: string
     type!: string
@@ -122,7 +122,7 @@ export class LuckyChartImage implements ChartImageObject {
 }
 export class ChartImageGroup {
     chart!: ChartModel;
-    image!: LuckyChartImage;
+    image!: ExcelXmlChartImage;
 
     readXml: ReadXml;
     constructor({
@@ -153,7 +153,7 @@ export class ChartImageGroup {
 
         const id = generateRandomId()
         if (xdr_xfrm) {
-            this.image = new LuckyChartImage(id, xdr_xfrm, range, chartType);
+            this.image = new ExcelXmlChartImage(id, xdr_xfrm, range, chartType);
 
             const chart = new Chart({
                 id,
@@ -243,7 +243,7 @@ class Chart implements ChartModel {
         chartType: ChartTypeBits,
         chartFile: string,
         readXml: ReadXml,
-        image: LuckyChartImage,
+        image: ExcelXmlChartImage,
         styles: IStyleCollections
     }) {
         const { id, range, chartType, chartFile, readXml, image, styles } = args;
@@ -260,7 +260,7 @@ class Chart implements ChartModel {
         this.style = this.getStyle(image);
     }
 
-    private getStyle = (image: LuckyChartImage): ChartStyle => {
+    private getStyle = (image: ExcelXmlChartImage): ChartStyle => {
         const bodySpPr = this.readXml.getElementsByTagNameLink('c:spPr', this.chartFile)[0];
         const fill = bodySpPr.getInnerElements('a:solidFill')?.[0];
         const ln = bodySpPr.getInnerElements('a:ln')?.[0];

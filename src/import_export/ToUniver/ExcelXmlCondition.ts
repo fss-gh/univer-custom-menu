@@ -1,5 +1,5 @@
 /**:
-* @description: 返回的condition格式为univer使用的格式，但是规则配置中的style是luckyexcel的格式，
+* @description: 返回的condition格式为univer使用的格式，但是规则配置中的style是ExcelXml的格式，
 * 后面考虑新增配置用来输出univer所需的数据结构
 * @author: Created by zwight on 2024-09-20 16:13:34
 */
@@ -17,7 +17,7 @@ export interface ConditionFormationRule {
     value?: string,
     isShowValue?: boolean
 }
-export interface LuckyConditionFormat<C = any> {
+export interface ExcelXmlConditionFormat<C = any> {
     ranges: IRange[],
     cfId: string,
     stopIfTrue: boolean,
@@ -82,7 +82,7 @@ interface ConditionElement extends Element {
     extLst: Element,
     isExtLst: boolean
 }
-export class LuckyCondition implements LuckyConditionFormat {
+export class ExcelXmlCondition implements ExcelXmlConditionFormat {
     ranges!: IRange[];
     cfId: string;
     stopIfTrue: boolean = false;

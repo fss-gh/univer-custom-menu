@@ -32,12 +32,12 @@ export interface IFilterColumn {
     filters?: IFilters;
     customFilters?: ICustomFilters;
 }
-export interface LuckyFilterFormat {
+export interface ExcelXmlFilterFormat {
     ref: IRange,
     filterColumns: IFilterColumn[],
     cachedFilteredOut: number[],
 }
-export class LuckFilter implements LuckyFilterFormat {
+export class ExcelXmlFilter implements ExcelXmlFilterFormat {
     ref!: IRange;
     filterColumns!: IFilterColumn[];
     cachedFilteredOut!: number[];

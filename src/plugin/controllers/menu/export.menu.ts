@@ -12,7 +12,7 @@ import {
   RibbonStartGroup,
 } from '@univerjs/ui';
 import { ICustomMenuPulginParams } from '../..';
-import { LuckyExcel } from '../../../import_export';
+import { ExcelXml } from '../../../import_export';
 import { ExportBtnIcon } from '../../components/button-icon/ExportBtnIcon';
 
 const OperationId = 'custom-menu.operation.export';
@@ -37,7 +37,7 @@ const ExportButtonOperation: (config?: ICustomMenuPulginParams) => ICommand = (
       ...before,
     };
 
-    LuckyExcel.transformUniverToExcel({
+    ExcelXml.transformUniverToExcel({
       ...postParams,
       getBuffer: false,
       success: (buffer: Buffer) => {

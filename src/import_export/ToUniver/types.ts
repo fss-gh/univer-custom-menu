@@ -286,14 +286,14 @@ export interface ChartModel {
  * 以下为 Excel 解析过程中的中间数据结构（原 ILuck 精简后保留在 ToUniver 内部），
  * 仅用于连接 XML 解析层与 Univer 数据组装层，不对外暴露。
  */
-import { LuckyConditionFormat } from "./LuckyCondition";
-import { IDefinedNames } from "./LuckyDefineName";
-import { LuckyFilterFormat } from "./luckyFilter";
-import { LuckyVerificationFormat } from "./LuckyVerification";
+import { ExcelXmlConditionFormat } from "./ExcelXmlCondition";
+import { IDefinedNames } from "./ExcelXmlDefineName";
+import { ExcelXmlFilterFormat } from "./ExcelXmlFilter";
+import { ExcelXmlVerificationFormat } from "./ExcelXmlVerification";
 
-export interface ILuckyFile {
-    info: ILuckyFileInfo,//File information, name,password,date,createor etc. 
-    sheets: IluckySheet[],//Sheets, include all sheet data
+export interface IExcelXmlFile {
+    info: IExcelXmlFileInfo,//File information, name,password,date,createor etc. 
+    sheets: IExcelXmlSheet[],//Sheets, include all sheet data
     workbook: IWorkBookInfo,
 }
 
@@ -301,7 +301,7 @@ export interface IWorkBookInfo {
     defineNames?: IDefinedNames
 }
 
-export interface ILuckyFileInfo {
+export interface IExcelXmlFileInfo {
     name: string,// File name
     creator: string,//Create user
     lastmodifiedby: string,//Edit user
@@ -311,10 +311,10 @@ export interface ILuckyFileInfo {
     appversion: string,//Excel version, Is it necessary?
 }
 
-export interface IluckySheet {
+export interface IExcelXmlSheet {
     name: string,// Sheet name, it will show on sheet bar, must be unique
     color: string,// Sheet color, it will show on sheet bar
-    config?: IluckySheetConfig, // Row height, column width, hidden, and so on
+    config?: IExcelXmlSheetConfig, // Row height, column width, hidden, and so on
     index: string, //A sheet uniquely identifies, 
     status: string, //If 1 , it means current shown sheet, else means hidden
     order: string, //Order of sheet
@@ -322,22 +322,22 @@ export interface IluckySheet {
     column: number, // Sheet the number of columns, contain blank cell
     // visibledatarow:number[],
     // visibledatacolumn:number[],
-    luckysheet_select_save?: IluckySheetSelection[],//selection defines
+    excelXmlSelectSave?: IExcelXmlSheetSelection[],//selection defines
     scrollLeft: number,//horizen scroll offset
     scrollTop: number,//verticel scroll offset
 
-    celldata?: IluckySheetCelldata[],// cells
-    dynamicArray?: IluckySheetDynamicArray[]
+    celldata?: IExcelXmlSheetCelldata[],// cells
+    dynamicArray?: IExcelXmlSheetDynamicArray[]
 
-    chart?: IluckySheetChart[],
+    chart?: IExcelXmlSheetChart[],
 
     isPivotTable: boolean,
-    pivotTable?: IluckySheetPivotTable,
+    pivotTable?: IExcelXmlSheetPivotTable,
 
-    luckysheet_conditionformat_save?: IluckysheetConditionFormat[],
-    freezen?: IluckysheetFrozen,
+    excelXmlConditionFormatSave?: IExcelXmlSheetConditionFormat[],
+    freezen?: IExcelXmlSheetFrozen,
 
-    calcChain?: IluckysheetCalcChain[],
+    calcChain?: IExcelXmlSheetCalcChain[],
 
     zoomRatio: number, //sheet zoom ratio 10%-400%
 
@@ -346,25 +346,25 @@ export interface IluckySheet {
     defaultColWidth: number, //cloumn width pixel
     defaultRowHeight: number, //row height pixel
 
-    images: IluckyImages,//image list
-    charts: IluckyChart[],//chart list
+    images: IExcelXmlImages,//image list
+    charts: IExcelXmlChart[],//chart list
 
-    dataVerification: IluckysheetDataVerification;
-    hyperlink: IluckysheetHyperlink, // hyperlinks
+    dataVerification: IExcelXmlSheetDataVerification;
+    hyperlink: IExcelXmlSheetHyperlink, // hyperlinks
     hide: number; // sheet hide
 
-    conditionalFormatting: LuckyConditionFormat[];
-    dataVerificationList: LuckyVerificationFormat[];
-    filter: LuckyFilterFormat
+    conditionalFormatting: ExcelXmlConditionFormat[];
+    dataVerificationList: ExcelXmlVerificationFormat[];
+    filter: ExcelXmlFilterFormat
 }
 
-//luckysheet general selection
-export interface IluckySheetSelection {
+//excelXmlSheet general selection
+export interface IExcelXmlSheetSelection {
     row: number[], //selection start row and end row
     column: number[], //selection start column and end column
 }
 
-export interface IluckySheetDynamicArray {
+export interface IExcelXmlSheetDynamicArray {
     r: number,//cell row number
     c: number,//cell column number
     f: string | undefined, //formula
@@ -373,26 +373,26 @@ export interface IluckySheetDynamicArray {
     refcells: string[][] | undefined
 }
 
-export interface IluckySheetChart {
+export interface IExcelXmlSheetChart {
 
 }
 
 //pivot table interface
-export interface IluckySheetPivotTable {
-    pivot_select_save: IluckySheetSelection,//Pivot table data source range
+export interface IExcelXmlSheetPivotTable {
+    pivot_select_save: IExcelXmlSheetSelection,//Pivot table data source range
     pivotDataSheetIndex: string | undefined, //data source sheet index, index is unique id
-    column: IluckySheetPivotTableField[],// column area, include filed 
-    row: IluckySheetPivotTableField[], // row area, include filed 
-    filter: IluckySheetPivotTableField[], // filter area, include filed 
-    filterparm: IluckySheetPivotTablefilterParam,// save param after apply filter
-    values: IluckySheetPivotTableField[],
+    column: IExcelXmlSheetPivotTableField[],// column area, include filed 
+    row: IExcelXmlSheetPivotTableField[], // row area, include filed 
+    filter: IExcelXmlSheetPivotTableField[], // filter area, include filed 
+    filterparm: IExcelXmlSheetPivotTablefilterParam,// save param after apply filter
+    values: IExcelXmlSheetPivotTableField[],
     showType: string,
     pivotDatas: any[][],
     drawPivotTable: boolean,
     pivotTableBoundary: number[],
 }
 
-export interface IluckySheetPivotTableField {
+export interface IExcelXmlSheetPivotTableField {
     index: number,
     name: string,
     fullname: string,
@@ -400,71 +400,71 @@ export interface IluckySheetPivotTableField {
     nameindex: number
 }
 
-export interface IluckySheetPivotTablefilterParam {
-    [index: string]: IluckySheetPivotTablefilterParamItem
+export interface IExcelXmlSheetPivotTablefilterParam {
+    [index: string]: IExcelXmlSheetPivotTablefilterParamItem
 }
 
-export interface IluckySheetPivotTablefilterParamItem {
-    caljs: IluckySheetPivotTablefilterParamItemCaljs,
-    rowhidden: IluckySheetPivotTablefilterParamItemRowhidden,
-    selected: IluckySheetPivotTablefilterParamItemSelected,
+export interface IExcelXmlSheetPivotTablefilterParamItem {
+    caljs: IExcelXmlSheetPivotTablefilterParamItemCaljs,
+    rowhidden: IExcelXmlSheetPivotTablefilterParamItemRowhidden,
+    selected: IExcelXmlSheetPivotTablefilterParamItemSelected,
 }
 
-export interface IluckySheetPivotTablefilterParamItemCaljs {
+export interface IExcelXmlSheetPivotTablefilterParamItemCaljs {
     text: string,
     type: string,
     value: string,
     value1: string,
 }
 
-export interface IluckySheetPivotTablefilterParamItemRowhidden {
+export interface IExcelXmlSheetPivotTablefilterParamItemRowhidden {
     [index: number]: number
 }
 
-export interface IluckySheetPivotTablefilterParamItemSelected {
+export interface IExcelXmlSheetPivotTablefilterParamItemSelected {
     [index: number]: number
 }
 
 
-export interface IluckysheetFrozen {
+export interface IExcelXmlSheetFrozen {
     horizen: number | undefined, //freeze horizen row number
     vertical: number | undefined, //freeze horizen column number
 }
 
-export interface IluckysheetConditionFormat {
+export interface IExcelXmlSheetConditionFormat {
     type: string, //Option:defualt,databar,colorGradation,icons,
-    cellrange: IluckySheetSelection[],//Valid range
-    format: string[] | IluckysheetCFDefaultFormat | IluckysheetCFIconsFormat,//style
+    cellrange: IExcelXmlSheetSelection[],//Valid range
+    format: string[] | IExcelXmlSheetCFDefaultFormat | IExcelXmlSheetCFIconsFormat,//style
     conditionName: string | undefined,//Detailed settings,comparison parameters
-    conditionRange: IluckySheetSelection[],//Detailed settings,comparison range
+    conditionRange: IExcelXmlSheetSelection[],//Detailed settings,comparison range
     conditionValue: any[],//Detailed settings,comparison value
 }
 
-export interface IluckysheetCFDefaultFormat {
+export interface IExcelXmlSheetCFDefaultFormat {
     textColor: string | undefined | null,
     cellColor: string | undefined | null
 }
 
-export interface IluckysheetCFIconsFormat {
+export interface IExcelXmlSheetCFIconsFormat {
     len: string | number,
     leftMin: string | number,
     top: string | number,
 }
 
-export interface IluckysheetCalcChain {
+export interface IExcelXmlSheetCalcChain {
     r: number,
     c: number,
     index: string | undefined,
 }
 
-export interface IluckySheetCelldata {
+export interface IExcelXmlSheetCelldata {
     r: number,//cell row number
     c: number,//cell column number
-    v: IluckySheetCelldataValue | string | null, //cell value
+    v: IExcelXmlSheetCelldataValue | string | null, //cell value
 }
 
-export interface IluckySheetCelldataValue {
-    ct: ILuckySheetCellFormat | undefined, //celltype,Cell value format: text, time, etc.
+export interface IExcelXmlSheetCelldataValue {
+    ct: IExcelXmlSheetCellFormat | undefined, //celltype,Cell value format: text, time, etc.
     bg: string | undefined,//background,#fff000	
     ff: string | undefined,//fontfamily,
     fc: string | undefined,//fontcolor
@@ -475,12 +475,12 @@ export interface IluckySheetCelldataValue {
     un: number | undefined//underline, 0 Regular, 1 underlines, fonts
     vt: number | undefined,//Vertical alignment, 0 middle, 1 up, 2 down
     ht: number | undefined,//Horizontal alignment,0 center, 1 left, 2 right
-    mc: IluckySheetCelldataValueMerge | undefined, //Merge Cells
-    tr: number | undefined, //Text rotation,0: 0、1: 45 、2: -45、3 Vertical text、4: 90 、5: -90
+    mc: IExcelXmlSheetCelldataValueMerge | undefined, //Merge Cells
+    tr: number | undefined, //Text rotation, 3 表示竖排文字
     tb: number | undefined, //Text wrap,0 truncation, 1 overflow, 2 word wrap
     v: string | undefined, //Original value	
     m: string | undefined, //Display value	
-    rt: number | undefined, //text rotation angle 0-180 alignment
+    rt: number | undefined, //原始 textRotation 角度 0-180（255 已用 tr=3 表示）
     f: string | undefined, //formula
     va: number | undefined,//(Subscript 下标 /Superscript上标 Text)
     qp: number | undefined //quotePrefix, show number as string
@@ -488,40 +488,40 @@ export interface IluckySheetCelldataValue {
 }
 
 
-export interface ILuckySheetCellFormat {
+export interface IExcelXmlSheetCellFormat {
     fa: string //Format definition string
     t: string // Cell Type
-    s: Array<IluckySheetCelldataValue | ILuckyInlineString> | undefined;
+    s: Array<IExcelXmlSheetCelldataValue | IExcelXmlInlineString> | undefined;
     ci: any // Cell Image
 }
 
-export interface IluckySheetCelldataValueMerge {
+export interface IExcelXmlSheetCelldataValueMerge {
     rs?: number, //row of merge cell  length, only main merge cell, every merge cell has only one main mergeCell
     cs?: number, //column of merge cell  length, only main merge cell, every merge cell has only one main mergeCell
     r: number, // main merge cell row Number, other cell link to main cell
     c: number, // main merge cell column Number, other cell link to main cell
 }
 
-//Lucky sheet config attribute
-export interface IluckySheetConfig {
-    merge?: IluckySheetConfigMerges, //merge handdler
-    // _borderInfo?: IMapluckySheetborderInfoCellForImp, //range border
-    borderInfo: IluckySheetborderInfoCellForImp[],//range border
-    rowlen?: IluckySheetRowAndColumnLen, // every row's height
-    columnlen?: IluckySheetRowAndColumnLen,// every column's width
-    rowhidden?: IluckySheetRowAndColumnHidden,//setting be hidden rows
-    colhidden?: IluckySheetRowAndColumnHidden,//setting be hidden columns
+//ExcelXml sheet config attribute
+export interface IExcelXmlSheetConfig {
+    merge?: IExcelXmlSheetConfigMerges, //merge handdler
+    // _borderInfo?: IMapExcelXmlSheetborderInfoCellForImp, //range border
+    borderInfo: IExcelXmlSheetborderInfoCellForImp[],//range border
+    rowlen?: IExcelXmlSheetRowAndColumnLen, // every row's height
+    columnlen?: IExcelXmlSheetRowAndColumnLen,// every column's width
+    rowhidden?: IExcelXmlSheetRowAndColumnHidden,//setting be hidden rows
+    colhidden?: IExcelXmlSheetRowAndColumnHidden,//setting be hidden columns
 
-    customHeight: IluckySheetRowAndColumnHidden,//user operate row height
-    customWidth: IluckySheetRowAndColumnHidden//user operate column width
+    customHeight: IExcelXmlSheetRowAndColumnHidden,//user operate row height
+    customWidth: IExcelXmlSheetRowAndColumnHidden//user operate column width
 }
 
 //Merge cells interface
-export interface IluckySheetConfigMerges {
-    [firstRange: string]: IluckySheetConfigMerge // "r_s":{ r,c,rs,cs } format, define a main merge cell 
+export interface IExcelXmlSheetConfigMerges {
+    [firstRange: string]: IExcelXmlSheetConfigMerge // "r_s":{ r,c,rs,cs } format, define a main merge cell 
 }
 //Merge cell interface
-export interface IluckySheetConfigMerge {
+export interface IExcelXmlSheetConfigMerge {
     r: number,
     c: number,
     rs: number,
@@ -529,53 +529,53 @@ export interface IluckySheetConfigMerge {
 }
 
 //Border cell interface
-export interface IluckySheetborderInfoCell {
+export interface IExcelXmlSheetborderInfoCell {
     rangeType: string,
-    value: IluckySheetborderInfoCellValue,
+    value: IExcelXmlSheetborderInfoCellValue,
 }
-export interface IluckySheetborderInfoCellValue {
+export interface IExcelXmlSheetborderInfoCellValue {
     row_index: number,
     col_index: number,
-    l: IluckySheetborderInfoCellValueStyle,
-    r: IluckySheetborderInfoCellValueStyle,
-    t: IluckySheetborderInfoCellValueStyle,
-    b: IluckySheetborderInfoCellValueStyle,
-    tl_br: IluckySheetborderInfoCellValueStyle
-    bl_tr: IluckySheetborderInfoCellValueStyle
+    l: IExcelXmlSheetborderInfoCellValueStyle,
+    r: IExcelXmlSheetborderInfoCellValueStyle,
+    t: IExcelXmlSheetborderInfoCellValueStyle,
+    b: IExcelXmlSheetborderInfoCellValueStyle,
+    tl_br: IExcelXmlSheetborderInfoCellValueStyle
+    bl_tr: IExcelXmlSheetborderInfoCellValueStyle
 }
-export interface IluckySheetborderInfoCellValueStyle {
+export interface IExcelXmlSheetborderInfoCellValueStyle {
     "style": number,
     "color": string
 }
 
 //border range interface
-export interface IluckySheetborderInfoRange {
+export interface IExcelXmlSheetborderInfoRange {
     rangeType: string,
     borderType: string,
     style: string,
     color: string,
-    range: IluckySheetSelection[],
+    range: IExcelXmlSheetSelection[],
 }
 
 //Border cell interface for import
-export interface IluckySheetborderInfoCellForImp {
+export interface IExcelXmlSheetborderInfoCellForImp {
     rangeType: string,
     cells?: string[],
-    value: IluckySheetborderInfoCellValue,
+    value: IExcelXmlSheetborderInfoCellValue,
 }
 
 //Border cell interface for import
-export interface IMapluckySheetborderInfoCellForImp {
-    [index: number]: IluckySheetborderInfoCellForImp
+export interface IMapExcelXmlSheetborderInfoCellForImp {
+    [index: number]: IExcelXmlSheetborderInfoCellForImp
 }
 
 //row length and column length interface
-export interface IluckySheetRowAndColumnLen {
+export interface IExcelXmlSheetRowAndColumnLen {
     [index: string]: number
 }
 
 //row and column hidden interface
-export interface IluckySheetRowAndColumnHidden {
+export interface IExcelXmlSheetRowAndColumnHidden {
     [index: string]: number
 }
 
@@ -592,10 +592,10 @@ export interface IFormulaCellValue {
     ref: string
     si: string
     fv?: string
-    cellValue: IluckySheetCelldata
+    cellValue: IExcelXmlSheetCelldata
 }
 
-export interface ILuckyInlineString {
+export interface IExcelXmlInlineString {
     ff: string | undefined //font family
     fc: string | undefined//font color
     fs: number | undefined//font size
@@ -610,10 +610,10 @@ export interface ILuckyInlineString {
 
 
 //Image
-export interface IluckyImage {
-    border: IluckyImageBorder
-    crop: IluckyImageCrop
-    default: IluckyImageDefault
+export interface IExcelXmlImage {
+    border: IExcelXmlImageBorder
+    crop: IExcelXmlImageCrop
+    default: IExcelXmlImageDefault
 
     fixedLeft: number
     fixedTop: number
@@ -625,29 +625,29 @@ export interface IluckyImage {
     [key: string]: any;
 }
 
-export interface IluckyImageBorder {
+export interface IExcelXmlImageBorder {
     color: string
     radius: number
     style: string
     width: number
 }
 
-export interface IluckyImageCrop {
+export interface IExcelXmlImageCrop {
     height: number
     offsetLeft: number
     offsetTop: number
     width: number
 }
 
-export interface IluckyImageDefault {
+export interface IExcelXmlImageDefault {
     height: number
     left: number
     top: number
     width: number
 }
 
-export interface IluckyImages {
-    [index: string]: IluckyImage
+export interface IExcelXmlImages {
+    [index: string]: IExcelXmlImage
 }
 
 
@@ -664,74 +664,74 @@ export interface IformulaListItem {
     c: number
 }
 // chart
-export interface IluckyChartImage {
-    border: IluckyImageBorder
-    crop: IluckyImageCrop
-    default: IluckyImageDefault
+export interface IExcelXmlChartImage {
+    border: IExcelXmlImageBorder
+    crop: IExcelXmlImageCrop
+    default: IExcelXmlImageDefault
 
     fixedLeft: number
     fixedTop: number
     isFixedPos: Boolean
     originHeight: number
     originWidth: number
-    data: IluckyChartImageData
+    data: IExcelXmlChartImageData
     type: string
     [key: string]: any;
 }
-export interface IluckyChartImageData {
+export interface IExcelXmlChartImageData {
     border: string,
     background: string,
     range: string,
     chartType: ChartTypeBits,
     isRowDirection: boolean
 }
-export interface IluckyCharts {
-    [index: string]: IluckyChart
+export interface IExcelXmlCharts {
+    [index: string]: IExcelXmlChart
 }
-export interface IluckyChart {
+export interface IExcelXmlChart {
     id: string,
     range: string,
     chartType: ChartTypeBits,
-    context: ILuckyChartContext,
-    style: ILuckyChartStyle,
+    context: IExcelXmlChartContext,
+    style: IExcelXmlChartStyle,
     isRowDirection: boolean,
 }
-export interface ILuckyChartContext {
+export interface IExcelXmlChartContext {
     categoryIndex: number;
     seriesIndexes: number[];
 }
-export interface ILuckyChartStyle {
-    titles: ILuckyChartStyleTitles;
+export interface IExcelXmlChartStyle {
+    titles: IExcelXmlChartStyleTitles;
     runtime: any;
     width: number;
     height: number;
     backgroundColor?: string;
     borderColor?: string;
-    xAxis?: ILuckyChartStyleAxis;
-    yAxis?: ILuckyChartStyleAxis;
-    allSeriesStyle?: ILuckyChartStyleSeries;
-    seriesStyleMap?: ILuckyChartStyleSerieStyles;
-    legend?: ILuckyChartStyleLegend;
+    xAxis?: IExcelXmlChartStyleAxis;
+    yAxis?: IExcelXmlChartStyleAxis;
+    allSeriesStyle?: IExcelXmlChartStyleSeries;
+    seriesStyleMap?: IExcelXmlChartStyleSerieStyles;
+    legend?: IExcelXmlChartStyleLegend;
     gradientFill?: boolean
 }
 
-export interface ILuckyChartStyleTitles {
+export interface IExcelXmlChartStyleTitles {
     titlePosition?: 'top' | 'bottom' | 'left' | 'right' | 'hide';
-    [key: string]: ILuckyChartStyleTitle | string | undefined | null | any,
+    [key: string]: IExcelXmlChartStyleTitle | string | undefined | null | any,
 }
 
-export interface ILuckyChartStyleTitle extends ILuckyChartStyleBase {
+export interface IExcelXmlChartStyleTitle extends IExcelXmlChartStyleBase {
     content: string;
 }
-export interface ILuckyChartStyleBase {
+export interface IExcelXmlChartStyleBase {
     color?: string;
     fontSize?: number;
     bold?: boolean;
     italic?: boolean;
 }
 
-export interface ILuckyChartStyleAxis {
-    label: ILuckyChartStyleAxisLabel;
+export interface IExcelXmlChartStyleAxis {
+    label: IExcelXmlChartStyleAxisLabel;
     reverse: boolean;
     lineVisible: boolean;
     gridLine: {
@@ -749,49 +749,49 @@ export interface ILuckyChartStyleAxis {
     max: number | undefined;
 }
 
-export interface ILuckyChartStyleAxisLabel extends ILuckyChartStyleBase {
+export interface IExcelXmlChartStyleAxisLabel extends IExcelXmlChartStyleBase {
     axisTitleAlign: 'start' | 'center' | 'end';
     rotate: number;
 }
 
-export interface ILuckyChartStyleSeries {
-    border?: ILuckyChartStyleBorder;
+export interface IExcelXmlChartStyleSeries {
+    border?: IExcelXmlChartStyleBorder;
     label?: {
         visible?: boolean;
     }
     fillOpacity?: number;
 }
-export interface ILuckyChartStyleBorder {
+export interface IExcelXmlChartStyleBorder {
     dashType: 'solid' | 'dotted' | 'dashed';
     width: number;
     opacity: number;
     color: string;
 }
-export interface ILuckyChartStyleSerieStyles {
-    [key: string]: ILuckyChartStyleSerieStyle
+export interface IExcelXmlChartStyleSerieStyles {
+    [key: string]: IExcelXmlChartStyleSerieStyle
 }
-export interface ILuckyChartStyleSerieStyle {
-    border?: ILuckyChartStyleBorder;
+export interface IExcelXmlChartStyleSerieStyle {
+    border?: IExcelXmlChartStyleBorder;
     rightYAxis?: boolean;
     label: {
         visible: boolean;
         position: 'inside' | 'outside',
         contentType: number
-    } & ILuckyChartStyleBase
+    } & IExcelXmlChartStyleBase
 }
-export interface ILuckyChartStyleLegend {
+export interface IExcelXmlChartStyleLegend {
     position: 'top' | 'bottom' | 'left' | 'right' | 'hide';
     selectMode?: 'single' | 'multiple' | 'close';
-    label?: ILuckyChartStyleBase;
+    label?: IExcelXmlChartStyleBase;
 }
 
 // DataVerification
-export interface IluckysheetDataVerification {
-    [key: string]: IluckysheetDataVerificationValue;
+export interface IExcelXmlSheetDataVerification {
+    [key: string]: IExcelXmlSheetDataVerificationValue;
 }
 
-export interface IluckysheetDataVerificationValue {
-    type: IluckysheetDataVerificationType;
+export interface IExcelXmlSheetDataVerificationValue {
+    type: IExcelXmlSheetDataVerificationType;
     type2: string | null;
     value1: string | number | null;
     value2: string | number | null;
@@ -802,7 +802,7 @@ export interface IluckysheetDataVerificationValue {
     hintText: string | null;
 }
 
-export type IluckysheetDataVerificationType =
+export type IExcelXmlSheetDataVerificationType =
     | "dropdown"
     | "checkbox"
     | "number"
@@ -813,15 +813,15 @@ export type IluckysheetDataVerificationType =
     | "date"
     | "validity";
 
-export interface IluckysheetHyperlink {
-    [key: string]: IluckysheetHyperlinkValue;
+export interface IExcelXmlSheetHyperlink {
+    [key: string]: IExcelXmlSheetHyperlinkValue;
 }
 
-export interface IluckysheetHyperlinkValue {
+export interface IExcelXmlSheetHyperlinkValue {
     linkAddress: string | null;
     linkTooltip: string;
-    linkType: IluckysheetHyperlinkType;
+    linkType: IExcelXmlSheetHyperlinkType;
     display: string;
 }
 
-export type IluckysheetHyperlinkType = "internal" | "external";
+export type IExcelXmlSheetHyperlinkType = "internal" | "external";

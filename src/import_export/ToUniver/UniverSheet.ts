@@ -15,8 +15,8 @@ import {
 import { UniverSheetBase } from './UniverSheetBase';
 import { handleStyle, removeEmptyAttr } from './utils';
 import { str2num, generateRandomId } from '../common/method';
-import { IluckySheet, IluckySheetConfig, IluckySheetCelldata, IluckysheetHyperlink, IluckysheetFrozen, IluckySheetCelldataValue } from './types';
-import { ImageSourceType } from './ILuckInterface';
+import { IExcelXmlSheet, IExcelXmlSheetConfig, IExcelXmlSheetCelldata, IExcelXmlSheetHyperlink, IExcelXmlSheetFrozen, IExcelXmlSheetCelldataValue } from './types';
+import { ImageSourceType } from './ExcelXmlInterface';
 
 export interface HyperLink {
     id: string;
@@ -30,13 +30,13 @@ export interface UniverSheetMode extends UniverSheetBase {
 }
 export class UniverSheet extends UniverSheetBase {
     hyperLink: HyperLink[] = [];
-    constructor(sheetData: IluckySheet) {
+    constructor(sheetData: IExcelXmlSheet) {
         super();
         const {
             color,
             zoomRatio,
             celldata,
-            config = {} as IluckySheetConfig,
+            config = {} as IExcelXmlSheetConfig,
             showGridLines,
             defaultColWidth,
             defaultRowHeight,
@@ -93,7 +93,7 @@ export class UniverSheet extends UniverSheetBase {
             hyperLink: this.hyperLink,
         };
     }
-    private handleMerge = (config: IluckySheetConfig): IRange[] => {
+    private handleMerge = (config: IExcelXmlSheetConfig): IRange[] => {
         const merges = config.merge;
         if (!merges) return [];
         return Object.values(merges).map((merge) => {
@@ -105,8 +105,8 @@ export class UniverSheet extends UniverSheetBase {
             };
         });
     };
-    private handleCellData = (celldata: IluckySheetCelldata[], config: IluckySheetConfig) => {
-        const handleCell = (row: IluckySheetCelldata): ICellData => {
+    private handleCellData = (celldata: IExcelXmlSheetCelldata[], config: IExcelXmlSheetConfig) => {
+        const handleCell = (row: IExcelXmlSheetCelldata): ICellData => {
             const { v } = row;
             if (typeof v === 'string' || v === null || v === undefined) {
                 return { v: v as string };
@@ -166,7 +166,7 @@ export class UniverSheet extends UniverSheetBase {
         }, []);
         const cell: IObjectMatrixPrimitiveType<ICellData> = {};
         // console.log(rowData, celldata, colCount)
-        rowData.forEach((row: IluckySheetCelldata[], rowIndex: number) => {
+        rowData.forEach((row: IExcelXmlSheetCelldata[], rowIndex: number) => {
             for (let index = 0; index < colCount + 1; index++) {
                 const element = row.find((d) => d.c === index) || {
                     r: rowIndex,
@@ -183,7 +183,7 @@ export class UniverSheet extends UniverSheetBase {
             colCount,
         };
     };
-    private handleDocument = (row: IluckySheetCelldata, config: IluckySheetConfig) => {
+    private handleDocument = (row: IExcelXmlSheetCelldata, config: IExcelXmlSheetConfig) => {
         const matchArray = (str: string, charToFind: string) => {
             const regex = new RegExp(charToFind, 'g');
             let match;
@@ -256,7 +256,7 @@ export class UniverSheet extends UniverSheetBase {
                     ed: end,
                     ts: handleStyle(
                         {
-                            v: (v.ct!.s?.[index] || v.ct!.s?.[0]) as IluckySheetCelldataValue,
+                            v: (v.ct!.s?.[index] || v.ct!.s?.[0]) as IExcelXmlSheetCelldataValue,
                             r: row.r,
                             c: row.c,
                         },
@@ -285,7 +285,7 @@ export class UniverSheet extends UniverSheetBase {
         return pVlaue;
     };
 
-    private handleCellImage = (row: IluckySheetCelldata, config: IluckySheetConfig) => {
+    private handleCellImage = (row: IExcelXmlSheetCelldata, config: IExcelXmlSheetConfig) => {
         let pVlaue: Nullable<any> = null;
         const { v } = row;
         if (typeof v === 'string' || v === null || v === undefined) {
@@ -363,7 +363,7 @@ export class UniverSheet extends UniverSheetBase {
         return pVlaue;
     }
 
-    private handleRowAndColumnData = (config: IluckySheetConfig) => {
+    private handleRowAndColumnData = (config: IExcelXmlSheetConfig) => {
         const columnData: IObjectArrayPrimitiveType<Partial<IColumnData>> = {};
         const rowData: IObjectArrayPrimitiveType<Partial<IRowData>> = {};
         for (let index = 0; index < this.rowCount; index++) {
@@ -387,9 +387,9 @@ export class UniverSheet extends UniverSheetBase {
 
     /**
      * 处理链接
-     * @param sheetName IluckysheetHyperlink
+     * @param sheetName IExcelXmlSheetHyperlink
      */
-    private handleSheetLink = (hyperlinks: IluckysheetHyperlink) => {
+    private handleSheetLink = (hyperlinks: IExcelXmlSheetHyperlink) => {
         if (!hyperlinks) return;
         const links = Object.keys(hyperlinks).map((d) => {
             const row = d.split('_')[0],
@@ -413,7 +413,7 @@ export class UniverSheet extends UniverSheetBase {
         this.hyperLink = links;
     };
     
-    private handleFreeze = (freeze: IluckysheetFrozen) => {
+    private handleFreeze = (freeze: IExcelXmlSheetFrozen) => {
         this.freeze = {
             xSplit: freeze.vertical ?? 0,
             ySplit: freeze.horizen ?? 0,

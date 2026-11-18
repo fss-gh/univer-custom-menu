@@ -19,7 +19,7 @@ import {
 
 import { ICustomMenuPulginParams } from '../..';
 import { waitUserSelectExcelFile } from '../../../utils';
-import { LuckyExcel } from '../../../import_export';
+import { ExcelXml } from '../../../import_export';
 import { ImportBtnIcon } from '../../components/button-icon/ImportBtnIcon';
 
 const OperationId = 'custom-menu.operation.import';
@@ -38,7 +38,7 @@ const ImportButtonOperation: (config?: ICustomMenuPulginParams) => ICommand = (
       waitUserSelectExcelFile({
         accept: '.xlsx',
         onSelect: (file: File) => {
-          LuckyExcel.transformExcelToUniver(
+          ExcelXml.transformExcelToUniver(
             file,
             async (exportJson: any) => {
               if (unitId) {
