@@ -245,7 +245,13 @@ export class Resource {
             case CFRuleType.dataBar:
                 ruleValue.type = CFRuleType.dataBar;
                 ruleValue.showValue = rule.isShowValue;
-                ruleValue.gradient = rule.config.isGradient;
+                // ExcelJS 对 gradient=true 的数据条会在 cfRule 的 extLst 中生成空的 x14:id，
+                // 这会导致 Excel 报告 /xl/worksheets/sheet1.xml 有 XML 错误。
+                // 只有 gradient=false 时才显式写 gradient=0；否则不设置 gradient，
+                // 让 ExcelJS 按默认渐变数据条写出完整的 x14:dataBar 扩展。
+                if (rule.config.isGradient === false) {
+                    ruleValue.gradient = false;
+                }
                 ruleValue.cfvo = [{
                     type: rule.config.min.type,
                     value: rule.config.min.value ?? undefined
@@ -253,31 +259,45 @@ export class Resource {
                     type: rule.config.max.type,
                     value: rule.config.max.value ?? undefined
                 }];
-                ruleValue.negativeFillColor = { argb: hex2argb(rule.config.nativeColor) };
+                if (rule.config.nativeColor) {
+                    ruleValue.negativeFillColor = { argb: hex2argb(rule.config.nativeColor) };
+                    ruleValue.negativeBorderColor = { argb: hex2argb(rule.config.nativeColor) };
+                    ruleValue.border = true;
+                    ruleValue.borderColor = { argb: hex2argb(rule.config.positiveColor) };
+                    ruleValue.axisColor = { argb: "FF000000" };
+                    // 与 Excel 原文件保持一致：不显式写 negativeBarColorSameAsPositive，
+                    // 由 negativeFillColor 表达负值填充；只声明负值边框不同色。
+                    ruleValue.negativeBarBorderColorSameAsPositive = false;
+                }
                 ruleValue.color = { argb: hex2argb(rule.config.positiveColor) }
-
-                // ruleValue.border = false;
                 ruleValue.axisPosition = 'auto';
                 ruleValue.direction = 'leftToRight';
                 ruleValue.minLength = 0;
                 ruleValue.maxLength = 100;
-                ruleValue.negativeBarColorSameAsPositive = true;
-                ruleValue.negativeBarBorderColorSameAsPositive = true;
 
                 break;
             case CFRuleType.iconSet:
                 ruleValue.type = CFRuleType.iconSet;
                 ruleValue.reverse = false;
                 ruleValue.showValue = rule.isShowValue;
-                ruleValue.icons = rule.config?.map((d: any) => {
-                    const iconId = (str2num(d.iconType.charAt(0)) as number) - (str2num(d?.iconId) as number) -1
-                    return {
-                        iconId,
-                        iconSet: d.iconType
-                    }
-                }).reverse();
-                ruleValue.custom = true;
-                // ruleValue.iconSet = rule.config[0]?.iconType;
+                // x14:iconSet 的 iconSet 属性是必填项，缺失会导致 Excel 报 XML 错误。
+                ruleValue.iconSet = rule.config?.[0]?.iconType;
+                // Univer 的默认图标顺序是高阈值→低阈值 iconId 为 0、1、2...，
+                // 与 Excel 默认图标顺序一致时不需要写 custom/cfIcon，保持 Excel 原生写法；
+                // 只有自定义过图标顺序才写 custom="1" + x14:cfIcon。
+                const isDefaultIconOrder = rule.config?.every((d: any, index: number) => {
+                    const iconId = str2num(d?.iconId);
+                    return typeof iconId === "number" && iconId === index;
+                });
+                if (!isDefaultIconOrder) {
+                    ruleValue.icons = rule.config?.map((d: any) => {
+                        const iconId = (str2num(d.iconType.charAt(0)) as number) - (str2num(d?.iconId) as number) -1
+                        return {
+                            iconId,
+                            iconSet: d.iconType
+                        }
+                    }).reverse();
+                }
                 ruleValue.cfvo = rule.config?.map((d: any) => {
                     return {
                         type: d.value.type,

@@ -214,7 +214,7 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
                 }))
             })?.flat().filter(Boolean).concat(extLstRule?.filter((d: any) => conditionList.findIndex(condition => condition.attributeList.sqref === d.parentAttribute.sqref) === -1)) || [];
 
-            this.conditionalFormatting = ruleList.map((d: any) => new ExcelXmlCondition(d, this.readXml, this.styles));
+            this.conditionalFormatting = ruleList.map((d: any) => new ExcelXmlCondition(d, this.readXml, this.styles, this.sheetFile));
             // console.log(ruleList, allFileOption, this.conditionalFormatting)
         }
         // console.log(allFileOption)

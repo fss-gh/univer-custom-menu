@@ -1,9 +1,11 @@
 
-export function hex2argb(rgb: string, prefix = '') {
+export function hex2argb(rgb: string, prefix = 'FF') {
     if (!rgb) return rgb;
     const colorName = colors[rgb];
     if (colorName) rgb = colorName
-    return rgb.toLocaleUpperCase().replace('#', prefix);
+    const hex = rgb.toLocaleUpperCase().replace('#', '');
+    // Excel 的 rgb 属性要求 8 位 AARRGGBB；如果已经是 8 位则直接返回，否则补上默认透明度。
+    return hex.length === 8 ? hex : prefix + hex;
 }
 export const colors: { [key: string]: string } = {
     "aliceblue": "#f0f8ff",

@@ -82,22 +82,118 @@ interface ConditionElement extends Element {
     extLst: Element,
     isExtLst: boolean
 }
+
+function cellRefToIndex(ref: string): { row: number; col: number } | null {
+    const match = ref.match(/([A-Z]+)(\d+)/);
+    if (!match) return null;
+
+    let col = 0;
+    for (const ch of match[1]) {
+        col = col * 26 + (ch.charCodeAt(0) - 64);
+    }
+    return {
+        row: Number(match[2]) - 1,
+        col: col - 1,
+    };
+}
+
+function getDataBarActualMinMax(
+    ranges: IRange[],
+    readXml: ReadXml,
+    sheetFile?: string
+): { min: number | null; max: number | null } {
+    if (!sheetFile) {
+        return { min: null, max: null };
+    }
+
+    const cells = readXml.getElementsByTagName("sheetData/c", sheetFile, true);
+    let min: number | null = null;
+    let max: number | null = null;
+
+    cells.forEach((cell) => {
+        const cellType = cell.attributeList?.t;
+        // 只统计数值单元格
+        if (cellType && cellType !== "n") return;
+
+        const ref = cellRefToIndex(cell.attributeList?.r || "");
+        if (!ref) return;
+
+        const inRange = ranges.some((range) =>
+            ref.row >= range.startRow &&
+            ref.row <= range.endRow &&
+            ref.col >= range.startColumn &&
+            ref.col <= range.endColumn
+        );
+        if (!inRange) return;
+
+        const vElement = readXml.getElementsByTagName("v", cell.value, false)?.[0];
+        const value = str2num(vElement?.value);
+        if (typeof value !== "number" || Number.isNaN(value)) return;
+
+        if (min === null || value < min) min = value;
+        if (max === null || value > max) max = value;
+    });
+
+    return { min, max };
+}
+
+/**
+ * Univer 的数据条渲染器在“自动 min/max”边界下，最小值单元格会被计算成 0 长度而返回 undefined，
+ * 导致该单元格不显示任何数据条（例如 Excel 中 5 和 6 的数据条，5 会显示短条，而 Univer 中 5 完全消失）。
+ *
+ * 这里把 Excel 的“自动 min/max”边界统一转成 Univer 的数值类型（num）：
+ * - 全正数：min 转成 0，max 保持实际最大值，使数据条从 0 开始显示（与 Excel 数值类型效果一致）；
+ * - 全负数：max 向上外扩 10%，让最接近 0 的单元格也有非零长度；
+ * - 两侧都改成 num，同时避免导出时 num + autoMin/autoMax 混用导致 Excel 报错。
+ */
+function adjustDataBarAutoToNum(
+    config: any,
+    ranges: IRange[],
+    readXml: ReadXml,
+    sheetFile?: string
+) {
+    const hasAuto = config.min?.type === "min" || config.max?.type === "max";
+    if (!hasAuto) return;
+
+    const { min: actualMin, max: actualMax } = getDataBarActualMinMax(ranges, readXml, sheetFile);
+
+    // 正数范围自动最小值统一转成 0，这样与 Excel 中数值类型数据条从 0 开始的效果一致；
+    // 负数范围保持实际最小值，避免破坏负数数据条。
+    const hasActual = actualMin !== null && actualMax !== null && actualMax > actualMin;
+    const rangeLength = hasActual ? actualMax - actualMin : 100;
+    const padding = rangeLength * 0.1;
+
+    if (config.min?.type === "min") {
+        const value = hasActual && actualMin >= 0
+            ? 0
+            : (hasActual ? actualMin : 0);
+        config.min = { type: "num", value };
+    }
+
+    if (config.max?.type === "max") {
+        const value = hasActual
+            ? (actualMax <= 0 ? actualMax + padding : actualMax)
+            : 100;
+        config.max = { type: "num", value };
+    }
+}
+
 export class ExcelXmlCondition implements ExcelXmlConditionFormat {
     ranges!: IRange[];
     cfId: string;
     stopIfTrue: boolean = false;
     order: number;
     rule: any;
-    constructor(ele: ConditionElement, readXml: ReadXml, styles: IStyleCollections) {
+    constructor(ele: ConditionElement, readXml: ReadXml, styles: IStyleCollections, sheetFile?: string) {
         const { attributeList, parentAttribute } = ele;
         if (parentAttribute?.sqref) this.ranges = handleRanges(parentAttribute.sqref);
         this.order = Number(getXmlAttibute(attributeList, 'priority', '1'));
         this.cfId = generateRandomIndex('condition');
         this.stopIfTrue = getXmlAttibute(attributeList, 'stopIfTrue', '0') === '1' ? true : false;
-        this.handleRules(ele, readXml, styles)
+        this.handleRules(ele, readXml, styles, sheetFile)
     }
 
-    private handleRules = (ele: ConditionElement, readXml: ReadXml, styles: IStyleCollections) => {
+    private handleRules = (ele: ConditionElement, readXml: ReadXml, styles: IStyleCollections, sheetFile?: string) => {
         const { attributeList, value, extLst, isExtLst } = ele
         const type = getXmlAttibute(attributeList, 'type', 'expression')
         const rule: any = {
@@ -193,6 +289,9 @@ export class ExcelXmlCondition implements ExcelXmlConditionFormat {
                     positiveColor,
                     nativeColor,
                 }
+                // Univer 在数值等于最小/最大边界时会不绘制数据条，这里把自动 min/max 统一转成
+                // 数值类型并略微外扩，保证 Excel 中最短的那根数据条在 Univer 中也能显示出来。
+                adjustDataBarAutoToNum(rule.config, this.ranges, readXml, sheetFile);
 
                 break;
             case 'iconSet':
@@ -202,6 +301,7 @@ export class ExcelXmlCondition implements ExcelXmlConditionFormat {
                     const iconCfvo = readXml.getElementsByTagName("iconSet/cfvo", value, false);
 
                     rule.isShowValue = iconSet[0]?.attributeList?.showValue === '0' ? false : true;
+                    const iconType = iconSet[0]?.attributeList?.iconSet || '';
                     rule.config = iconCfvo.map((d, index) => {
                         return {
                             operator: rule.operator || CFNumberOperator.greaterThanOrEqual,
@@ -209,10 +309,12 @@ export class ExcelXmlCondition implements ExcelXmlConditionFormat {
                                 type: d.attributeList.type,
                                 value: str2num(d.attributeList.val)
                             },
-                            iconType: iconSet[0].attributeList.iconSet,
-                            iconId: index
+                            iconType,
+                            // Excel 的 iconSet/cfvo 从低阈值到高阈值排列，Univer 的图标集配置从高到低排列，
+                            // 因此这里映射 iconId 并 reverse，保证导入后在 Univer 中显示正确的图标。
+                            iconId: (str2num(iconType.charAt(0)) as number) - index - 1
                         }
-                    })
+                    }).reverse();
                 } else {
                     const iconSet = readXml.getElementsByTagName("x14:iconSet", value, false)[0];
                     const iconCfvo = readXml.getElementsByTagName("x14:iconSet/x14:cfvo", value, false);
@@ -225,7 +327,14 @@ export class ExcelXmlCondition implements ExcelXmlConditionFormat {
 
                         let iconInfo = cfIcon[index]?.attributeList
                         const iconType = (isCustom ? iconInfo?.iconSet : iconSet?.attributeList.iconSet) || '';
-                        const iconId = (str2num(iconType.charAt(0)) as number) - (str2num(iconInfo?.iconId) as number) - 1;
+                        // 普通图标集（非 custom）没有 x14:cfIcon，无法直接取得 iconId。
+                        // Excel 的 iconSet/cfvo 从低阈值到高阈值排列，默认图标 id 依次是 N-1、N-2、...、0，
+                        // 这里先按同样规则映射，后面统一 reverse 成 Univer 的高阈值到低阈值顺序。
+                        const iconCount = str2num(iconType.charAt(0)) as number;
+                        const rawIconId = isCustom ? str2num(iconInfo?.iconId) : index;
+                        const iconId = typeof rawIconId !== 'number'
+                            ? iconCount - index - 1
+                            : iconCount - rawIconId - 1;
                         return {
                             operator: CFNumberOperator.greaterThanOrEqual,
                             value: {

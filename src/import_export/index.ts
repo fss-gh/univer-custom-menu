@@ -8,6 +8,7 @@ import { IuploadfileList } from "./ICommon";
 
 import { WorkBook } from "./UniverToExcel/Workbook";
 import { injectAutoFilterColumns } from "./UniverToExcel/filterXml";
+import { sanitizeExportedXml } from "./UniverToExcel/sanitizeXml";
 import exceljs from "@zwight/exceljs";
 import { CSV } from "./UniverToCsv/CSV";
 import { isObject } from "./common/method";
@@ -130,7 +131,10 @@ export class ExcelXml {
             // console.log(2, new Date())
             const buffer = await workbook.xlsx.writeBuffer();
             // ExcelJS 不支持写 autoFilter 的 filterColumn，这里在生成 xlsx 后补上筛选条件。
-            const finalBuffer = await injectAutoFilterColumns(buffer, snapshot);
+            const filteredBuffer = await injectAutoFilterColumns(buffer, snapshot);
+            // ExcelJS 会在 workbook.xml.rels 中写入一个即使没有 cell image 也存在的
+            // 悬空 cellimages.xml 关系，这里统一清理，避免 Excel 打开报“文件已损坏/修复”。
+            const finalBuffer = await sanitizeExportedXml(filteredBuffer);
             // console.log(3, new Date())
             if (getBuffer) {
                 success?.(finalBuffer);
