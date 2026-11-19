@@ -33,6 +33,15 @@ export const PAGE_LAYOUT_PANEL_COMPONENT = 'custom-menu.page-layout-panel-compon
 /** 页面方向 */
 export type PageOrientation = 'portrait' | 'landscape';
 
+/**
+ * 打印缩放模式（4 种）：
+ * - none：无缩放
+ * - fitSheet：将工作表调整为一页
+ * - fitColumns：将所有列调整为一页
+ * - fitRows：将所有行调整为一页
+ */
+export type PageScaleMode = 'none' | 'fitSheet' | 'fitColumns' | 'fitRows';
+
 /** 页边距，单位：英寸（与 Excel pageMargins 一致） */
 export interface IPageMargins {
     top: number;
@@ -43,11 +52,13 @@ export interface IPageMargins {
     footer: number;
 }
 
-/** 纸张设置 */
+/** 纸张/打印缩放设置 */
 export interface IPageSetup {
     orientation: PageOrientation;
     /** Excel paperSize，例：9 = A4，8 = A3，1 = Letter */
     paperSize: number;
+    /** 打印缩放模式，默认无缩放 */
+    scaleMode?: PageScaleMode;
 }
 
 /** 单个工作表保存的页面布局数据 */
@@ -56,7 +67,7 @@ export interface ISheetPageLayoutData {
     printArea?: IRange[];
     /** 页边距（英寸） */
     margins?: IPageMargins;
-    /** 纸张方向/大小 */
+    /** 纸张方向/大小、打印缩放 */
     pageSetup?: IPageSetup;
     /** 水平分页符：新页起始行的 0-based 行索引 */
     rowBreaks?: number[];
@@ -93,10 +104,11 @@ export const DEFAULT_PAGE_MARGINS: IPageMargins = {
     footer: 0.3,
 };
 
-/** 默认纸张设置：A4 纵向 */
+/** 默认纸张设置：A4 纵向、无缩放 */
 export const DEFAULT_PAGE_SETUP: IPageSetup = {
     orientation: 'portrait',
     paperSize: 9,
+    scaleMode: 'none',
 };
 
 /** 英寸转厘米 */

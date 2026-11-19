@@ -62,6 +62,7 @@ export type {
     IPageSetup,
     ISheetPageLayoutData,
     PageOrientation,
+    PageScaleMode,
 } from './plugin/page-layout/types';
 
 /** Excel 转换工具（需要时可直接使用） */

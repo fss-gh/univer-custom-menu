@@ -12,6 +12,7 @@ import { ExcelXmlVerification } from "./ExcelXmlVerification";
 import { ExcelXmlFilter } from "./ExcelXmlFilter";
 import { ExcelXmlFreezen } from './ExcelXmlFreezen'
 import { ChartImageGroup } from './ExcelXmlChart'
+import type { PageScaleMode } from '../../plugin/page-layout/types';
 
 export class ExcelXmlSheet extends ExcelXmlSheetBase {
 
@@ -286,12 +287,30 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
         const pageSetupEle = this.readXml.getElementsByTagName("pageSetup", this.sheetFile);
         const setupAttr = pageSetupEle?.[0]?.attributeList;
         if (setupAttr) {
+            const pageSetUpPrAttr = this.readXml.getElementsByTagName("sheetPr/pageSetUpPr", this.sheetFile)?.[0]?.attributeList;
+            const fitToPageValue = getXmlAttibute(pageSetUpPrAttr ?? {}, "fitToPage", "0");
+            const fitToPage = fitToPageValue === "1" || fitToPageValue === "true";
+            const fitToWidth = toNumber(getXmlAttibute(setupAttr, "fitToWidth", "1"), 1);
+            const fitToHeight = toNumber(getXmlAttibute(setupAttr, "fitToHeight", "1"), 1);
+
+            let scaleMode: PageScaleMode = "none";
+            if (fitToPage) {
+                if (fitToWidth > 0 && fitToHeight > 0) {
+                    scaleMode = "fitSheet";
+                } else if (fitToWidth > 0) {
+                    scaleMode = "fitColumns";
+                } else if (fitToHeight > 0) {
+                    scaleMode = "fitRows";
+                }
+            }
+
             this.pageSetup = {
                 orientation:
                     getXmlAttibute(setupAttr, "orientation", "portrait") === "landscape"
                         ? "landscape"
                         : "portrait",
                 paperSize: toNumber(getXmlAttibute(setupAttr, "paperSize", "9"), 9),
+                scaleMode,
             };
         }
 

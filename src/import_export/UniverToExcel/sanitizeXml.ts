@@ -187,9 +187,31 @@ function injectColBreaks(xml: string, breaks: number[]): string {
         return xml.replace(/<\/rowBreaks>/, `</rowBreaks>${colBreaksXml}`);
     }
 
-    const anchor = /<(drawing|legacyDrawing|picture|oleObjects|controls|webPublishItems|tableParts|extLst)\b/;
+    // CT_Worksheet 要求 colBreaks 位于 headerFooter/pageSetup/pageMargins 之后。
+    // 按这些顶层结束标签插入，避免把 colBreaks 插进条件格式里嵌套的 <extLst>。
+    if (/<\/headerFooter>/.test(xml)) {
+        return xml.replace(/<\/headerFooter>/, `</headerFooter>${colBreaksXml}`);
+    }
+    if (/<\/pageSetup>/.test(xml)) {
+        return xml.replace(/<\/pageSetup>/, `</pageSetup>${colBreaksXml}`);
+    }
+    if (/<\/pageMargins>/.test(xml)) {
+        return xml.replace(/<\/pageMargins>/, `</pageMargins>${colBreaksXml}`);
+    }
+
+    // dataBar 的 cfRule 内部也包含 <extLst>，这里只匹配确定属于顶层的元素。
+    const anchor = /<(customProperties|cellWatches|ignoredErrors|smartTags|drawing|legacyDrawing|legacyDrawingHF|picture|oleObjects|controls|webPublishItems|tableParts)\b/;
     if (anchor.test(xml)) {
         return xml.replace(anchor, `${colBreaksXml}<$1`);
+    }
+
+    // 工作表级 extLst 必须始终是最后一个子元素，插到它前面。
+    const lastExtLst = xml.lastIndexOf('<extLst');
+    if (lastExtLst !== -1) {
+        const tail = xml.slice(lastExtLst);
+        if (/^<extLst\b[^>]*>[\s\S]*<\/extLst>\s*<\/worksheet>\s*$/.test(tail)) {
+            return `${xml.slice(0, lastExtLst)}${colBreaksXml}${tail}`;
+        }
     }
 
     return xml.replace(/<\/worksheet>/, `${colBreaksXml}</worksheet>`);

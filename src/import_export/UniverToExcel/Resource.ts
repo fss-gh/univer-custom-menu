@@ -1,6 +1,6 @@
 import { Anchor, Workbook, Worksheet } from "@zwight/exceljs";
 import { escapeCharacter, getEmusByPx, getImageExtension, getRangetxt, isEmpty, jsonParse, removeEmptyAttr, str2num } from "../common/method";
-import { CFRuleType, CFSubRuleType } from "../ToUniver/ExcelXmlCondition";
+import { CFRuleType, CFSubRuleType, DEFAULT_ICON_SET } from "../ToUniver/ExcelXmlCondition";
 import { hex2argb } from "./util";
 import { cellStyle } from "./CellStyle";
 
@@ -281,7 +281,7 @@ export class Resource {
                 ruleValue.reverse = false;
                 ruleValue.showValue = rule.isShowValue;
                 // x14:iconSet 的 iconSet 属性是必填项，缺失会导致 Excel 报 XML 错误。
-                ruleValue.iconSet = rule.config?.[0]?.iconType;
+                ruleValue.iconSet = rule.config?.[0]?.iconType || DEFAULT_ICON_SET;
                 // Univer 的默认图标顺序是高阈值→低阈值 iconId 为 0、1、2...，
                 // 与 Excel 默认图标顺序一致时不需要写 custom/cfIcon，保持 Excel 原生写法；
                 // 只有自定义过图标顺序才写 custom="1" + x14:cfIcon。
@@ -320,7 +320,11 @@ export class Resource {
                         break;
                     case CFSubRuleType.number:
                         ruleValue.type = 'cellIs';
-                        ruleValue.formulae = [rule.value];
+                        // Univer 中字符串条件值可能保留 XML/HTML 实体（如 &quot;F&quot;）。
+                        // 直接写入会被 ExcelJS 二次转义成 &amp;quot;，Excel 解析公式失败后会删除条件格式。
+                        ruleValue.formulae = [
+                            typeof rule.value === 'string' ? escapeCharacter(rule.value) : rule.value
+                        ];
                         break;
                     case CFSubRuleType.rank:
                         ruleValue.type = 'top10';

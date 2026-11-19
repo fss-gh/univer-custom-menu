@@ -9,7 +9,7 @@ Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出**、**上下
 - 支持条件格式、数据验证、筛选、冻结、超链接、传统批注、单元格图片/浮动图片等常见 Excel 特性
 - 图表/透视表：暂不支持导入与导出
 - 上下标插件：在工具栏中同时提供上标、下标两个按钮
-- 页面布局插件：导入/导出打印区域、页边距、分页符、纸张方向与纸张大小，支持在工具栏打开侧边栏进行设置，画布上以虚线显示打印区域和分页符，并随 Univer 快照以 JSON 形式保存
+- 页面布局插件：导入/导出打印区域、页边距、分页符、纸张方向/大小与打印缩放，支持在工具栏打开侧边栏进行设置，画布上以虚线显示打印区域和分页符，并随 Univer 快照以 JSON 形式保存
 - 不依赖 `@univerjs/vite-plugin`，插件通过 `Plugin` 基类手动注册
 
 ## 目录结构
@@ -24,7 +24,7 @@ src/
 └── plugin/
     ├── import-export/     # 导入/导出菜单插件
     ├── super-subscript/   # 上下标插件
-    └── page-layout/       # 页面布局插件（打印区域/页边距/分页符/纸张方向与大小）
+    └── page-layout/       # 页面布局插件（打印区域/页边距/分页符/纸张方向大小/打印缩放）
 ```
 
 > 说明：代码现在直接从 Excel XML 解析为 `IExcelXmlFile`，再由 `UniverWorkBook` 生成 `IWorkbookData`，不再经过额外的中间层。
@@ -154,10 +154,10 @@ univer.registerPlugin(UniverSheetsPageLayoutPlugin, {
 
 使用方式：
 
-1. 通过“导入”菜单打开 Excel 文件时，插件会自动解析打印区域、`pageMargins`、`pageSetup`（纸张方向/大小）以及 `rowBreaks`/`colBreaks`，并保存为 `SHEET_PAGE_LAYOUT_PLUGIN` 资源。
-2. 点击工具栏「页面布局」打开侧边栏，可设置/清除打印区域、调整上/下/左/右/页眉/页脚页边距（界面单位为厘米）、切换纸张方向与大小，并在选中行/列处添加、删除或清空分页符。
+1. 通过“导入”菜单打开 Excel 文件时，插件会自动解析打印区域、`pageMargins`、`pageSetup`（纸张方向/大小、打印缩放）以及 `rowBreaks`/`colBreaks`，并保存为 `SHEET_PAGE_LAYOUT_PLUGIN` 资源。
+2. 点击工具栏「页面布局」打开侧边栏，可设置/清除打印区域、调整上/下/左/右/页眉/页脚页边距（界面单位为厘米）、切换纸张方向与大小、选择 4 种打印缩放模式，并在选中行/列处添加、删除或清空分页符。
 3. 画布上会显示打印区域边框和分页符虚线。
-4. 页面布局数据会随 `activeWorkbook.save()` 返回的 JSON 快照保存到 `resources` 中；导出 Excel 时会写回 `pageSetup.printArea`、`pageMargins`、`pageSetup.orientation/paperSize`、`rowBreaks` 和 `colBreaks`。
+4. 页面布局数据会随 `activeWorkbook.save()` 返回的 JSON 快照保存到 `resources` 中；导出 Excel 时会写回 `pageSetup.printArea`、`pageMargins`、`pageSetup.orientation/paperSize/scaleMode`、`rowBreaks` 和 `colBreaks`。打印缩放模式会写入 Excel 的 `sheetPr/pageSetUpPr@fitToPage` 与 `pageSetup@fitToWidth/fitToHeight/scale`。
 
 数据 JSON 示例：
 
@@ -166,13 +166,13 @@ univer.registerPlugin(UniverSheetsPageLayoutPlugin, {
   "resources": [
     {
       "name": "SHEET_PAGE_LAYOUT_PLUGIN",
-      "data": "{\"<sheetId>\":{\"printArea\":[{\"startRow\":0,\"startColumn\":0,\"endRow\":9,\"endColumn\":3}],\"margins\":{\"top\":0.75,\"bottom\":0.75,\"left\":0.7,\"right\":0.7,\"header\":0.3,\"footer\":0.3},\"pageSetup\":{\"orientation\":\"portrait\",\"paperSize\":9},\"rowBreaks\":[19],\"colBreaks\":[3]}}"
+      "data": "{\"<sheetId>\":{\"printArea\":[{\"startRow\":0,\"startColumn\":0,\"endRow\":9,\"endColumn\":3}],\"margins\":{\"top\":0.75,\"bottom\":0.75,\"left\":0.7,\"right\":0.7,\"header\":0.3,\"footer\":0.3},\"pageSetup\":{\"orientation\":\"portrait\",\"paperSize\":9,\"scaleMode\":\"none\"},\"rowBreaks\":[19],\"colBreaks\":[3]}}"
     }
   ]
 }
 ```
 
-> 页边距在资源中按 Excel 原生单位（英寸）保存，侧边栏展示与输入时自动换算为厘米；`rowBreaks`/`colBreaks` 保存 0 基的起始行/列索引。
+> 页边距在资源中按 Excel 原生单位（英寸）保存，侧边栏展示与输入时自动换算为厘米；`rowBreaks`/`colBreaks` 保存 0 基的起始行/列索引。`scaleMode` 支持 `none`（无缩放）、`fitSheet`（将工作表调整为一页）、`fitColumns`（将所有列调整为一页）、`fitRows`（将所有行调整为一页）。
 
 ## 直接使用转换工具
 

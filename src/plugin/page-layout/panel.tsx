@@ -6,7 +6,7 @@ import { Button, FormLayout, InputNumber, Select } from '@univerjs/design';
 import { SheetsSelectionsService } from '@univerjs/sheets';
 import { useDependency, useObservable } from '@univerjs/ui';
 import { PageLayoutModel } from './model';
-import type { IPageMargins, PageOrientation } from './types';
+import type { IPageMargins, PageOrientation, PageScaleMode } from './types';
 import {
     DEFAULT_PAGE_MARGINS,
     DEFAULT_PAGE_SETUP,
@@ -22,6 +22,7 @@ import { PageLayoutPrintAreaIcon } from '../components/item-icon/PageLayoutPrint
 import { PageLayoutMarginsIcon } from '../components/item-icon/PageLayoutMarginsIcon';
 import { PageLayoutPaperIcon } from '../components/item-icon/PageLayoutPaperIcon';
 import { PageLayoutPageBreaksIcon } from '../components/item-icon/PageLayoutPageBreaksIcon';
+import { PageLayoutScaleIcon } from '../components/item-icon/PageLayoutScaleIcon';
 
 const PAPER_SIZES = [
     { value: '9', label: 'A4' },
@@ -32,6 +33,14 @@ const PAPER_SIZES = [
     { value: '7', label: 'Executive' },
     { value: '13', label: 'B5 (JIS)' },
     { value: '119', label: '16K' },
+];
+
+/** 打印缩放：4 种预设 */
+const SCALE_MODES: Array<{ value: PageScaleMode; label: string }> = [
+    { value: 'none', label: 'customMenu.pageLayoutScaleNone' },
+    { value: 'fitSheet', label: 'customMenu.pageLayoutScaleFitSheet' },
+    { value: 'fitColumns', label: 'customMenu.pageLayoutScaleFitColumns' },
+    { value: 'fitRows', label: 'customMenu.pageLayoutScaleFitRows' },
 ];
 
 const MARGIN_FIELDS: Array<{ key: keyof IPageMargins; label: string }> = [
@@ -156,6 +165,11 @@ export function PageLayoutPanel() {
         pageLayoutModel.setPaperSize(unitId, subUnitId, paperSize);
     };
 
+    const updateScaleMode = (scaleMode: PageScaleMode) => {
+        if (!unitId || !subUnitId) return;
+        pageLayoutModel.setScaleMode(unitId, subUnitId, scaleMode);
+    };
+
     const addBreak = (type: 'row' | 'col') => {
         commandService.executeCommand(ADD_PAGE_BREAK_COMMAND_ID, { type });
     };
@@ -236,6 +250,17 @@ export function PageLayoutPanel() {
                         value={String(pageSetup.paperSize)}
                         options={PAPER_SIZES}
                         onChange={(value) => updatePaperSize(Number(value))}
+                    />
+                </FormLayout>
+            </section>
+
+            <section style={sectionStyle}>
+                <SectionTitle icon={<PageLayoutScaleIcon />}>{t('customMenu.pageLayoutScale')}</SectionTitle>
+                <FormLayout label={t('customMenu.pageLayoutScaleMode')}>
+                    <Select
+                        value={pageSetup.scaleMode ?? 'none'}
+                        options={SCALE_MODES.map(({ value, label }) => ({ value, label: t(label) }))}
+                        onChange={(value) => updateScaleMode(value as PageScaleMode)}
                     />
                 </FormLayout>
             </section>

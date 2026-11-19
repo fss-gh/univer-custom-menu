@@ -23,7 +23,7 @@ const createPageLayoutMenuFactory = (
     };
 };
 
-/** 页面布局菜单：打开打印区域/页边距/分页符/纸张设置面板 */
+/** 页面布局菜单：打开打印区域/页边距/分页符/纸张/打印缩放设置面板 */
 export function CustomPageLayoutMenu(config?: IPageLayoutPluginConfig): UniverMenuConfig {
     const tooltip = config?.tooltip || 'customMenu.pageLayout';
     return {

@@ -82,6 +82,7 @@ function setMerges(worksheet: Worksheet, mergeData: any[]) {
  * - 打印区域 -> pageSetup.printArea（ExcelJS 会转成 _xlnm.Print_Area 定义名称）
  * - 页边距 -> pageMargins
  * - 纸张方向/大小 -> pageSetup
+ * - 打印缩放 -> pageSetUpPr.fitToPage + pageSetup.fitToWidth/fitToHeight/scale
  * - 水平分页符 -> rowBreaks（ExcelJS 不支持 colBreaks，列分页符在 sanitizeExportedXml 中注入）
  */
 function setPageLayout(worksheet: Worksheet, sheetId: string, resources: any[]) {
@@ -102,6 +103,17 @@ function setPageLayout(worksheet: Worksheet, sheetId: string, resources: any[]) 
     if (layout.pageSetup) {
         worksheet.pageSetup.orientation = layout.pageSetup.orientation;
         worksheet.pageSetup.paperSize = layout.pageSetup.paperSize as any;
+
+        const scaleMode = layout.pageSetup.scaleMode ?? 'none';
+        if (scaleMode === 'none') {
+            worksheet.pageSetup.fitToPage = false;
+            worksheet.pageSetup.scale = 100;
+        } else {
+            worksheet.pageSetup.fitToPage = true;
+            // Excel 用 0 表示“自动”：只限宽时高度为 0，只限高时宽度为 0
+            worksheet.pageSetup.fitToWidth = scaleMode === 'fitRows' ? 0 : 1;
+            worksheet.pageSetup.fitToHeight = scaleMode === 'fitColumns' ? 0 : 1;
+        }
     }
 
     if (layout.rowBreaks?.length) {

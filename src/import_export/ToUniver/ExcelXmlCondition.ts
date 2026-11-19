@@ -9,6 +9,9 @@ import { CellFormat } from "./types";
 import { Element, getColor, IStyleCollections, ReadXml } from "./ReadXml";
 import { getBackgroundByFill, getFontStyle, handleBorder, handleRanges, IRange } from "./style";
 
+/** Excel 默认图标集；源文件省略 iconSet 属性时使用 */
+export const DEFAULT_ICON_SET = '3TrafficLights1';
+
 
 export interface ConditionFormationRule {
     type: string,
@@ -301,7 +304,7 @@ export class ExcelXmlCondition implements ExcelXmlConditionFormat {
                     const iconCfvo = readXml.getElementsByTagName("iconSet/cfvo", value, false);
 
                     rule.isShowValue = iconSet[0]?.attributeList?.showValue === '0' ? false : true;
-                    const iconType = iconSet[0]?.attributeList?.iconSet || '';
+                    const iconType = iconSet[0]?.attributeList?.iconSet || DEFAULT_ICON_SET;
                     rule.config = iconCfvo.map((d, index) => {
                         return {
                             operator: rule.operator || CFNumberOperator.greaterThanOrEqual,
@@ -326,7 +329,7 @@ export class ExcelXmlCondition implements ExcelXmlConditionFormat {
                         const value = readXml.getElementsByTagName("xm:f", d.value, false)[0];
 
                         let iconInfo = cfIcon[index]?.attributeList
-                        const iconType = (isCustom ? iconInfo?.iconSet : iconSet?.attributeList.iconSet) || '';
+                        const iconType = (isCustom ? iconInfo?.iconSet : iconSet?.attributeList.iconSet) || DEFAULT_ICON_SET;
                         // 普通图标集（非 custom）没有 x14:cfIcon，无法直接取得 iconId。
                         // Excel 的 iconSet/cfvo 从低阈值到高阈值排列，默认图标 id 依次是 N-1、N-2、...、0，
                         // 这里先按同样规则映射，后面统一 reverse 成 Univer 的高阈值到低阈值顺序。

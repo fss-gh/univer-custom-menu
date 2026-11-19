@@ -12,8 +12,8 @@ const AllPageLayoutController = [PageLayoutMenuController];
 
 /**
  * 页面布局自定义插件：
- * - 导入 Excel 时解析打印区域、页边距、纸张方向/大小和分页符
- * - 工具栏提供「页面布局」入口，侧边栏可设置打印区域、页边距、分页符、纸张方向/大小
+ * - 导入 Excel 时解析打印区域、页边距、纸张方向/大小、打印缩放和分页符
+ * - 工具栏提供「页面布局」入口，侧边栏可设置打印区域、页边距、分页符、纸张方向/大小和打印缩放
  * - 画布上显示打印区域边框和分页符虚线
  * - 页面布局数据保存在 Univer 快照 resources 的 SHEET_PAGE_LAYOUT_PLUGIN 中
  *

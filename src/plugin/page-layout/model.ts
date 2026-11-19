@@ -3,8 +3,10 @@ import { Subject } from 'rxjs';
 import type {
     IPageLayoutResourceData,
     IPageMargins,
+    IPageSetup,
     ISheetPageLayoutData,
     PageOrientation,
+    PageScaleMode,
 } from './types';
 
 /**
@@ -64,7 +66,7 @@ export class PageLayoutModel {
     setPageSetup(
         unitId: string,
         subUnitId: string,
-        pageSetup: { orientation: PageOrientation; paperSize: number }
+        pageSetup: IPageSetup
     ): void {
         const data = this._getSheetData(unitId, subUnitId);
         data.pageSetup = { ...pageSetup };
@@ -87,6 +89,17 @@ export class PageLayoutModel {
             orientation: data.pageSetup?.orientation ?? 'portrait',
             ...data.pageSetup,
             paperSize,
+        };
+        this._notify(unitId, subUnitId);
+    }
+
+    setScaleMode(unitId: string, subUnitId: string, scaleMode: PageScaleMode): void {
+        const data = this._getSheetData(unitId, subUnitId);
+        data.pageSetup = {
+            orientation: data.pageSetup?.orientation ?? 'portrait',
+            paperSize: data.pageSetup?.paperSize ?? 9,
+            ...data.pageSetup,
+            scaleMode,
         };
         this._notify(unitId, subUnitId);
     }
