@@ -1,4 +1,5 @@
 import { ChartTypeBits } from "../common/constant";
+import type { IPageMargins, IPageSetup } from '../../plugin/page-layout/types';
 import { IExcelXmlFile, IExcelXmlFileInfo, IExcelXmlSheet, IExcelXmlSheetCelldata, IExcelXmlSheetConfig, IExcelXmlSheetCelldataValue, IExcelXmlSheetCelldataValueMerge, IExcelXmlSheetCellFormat, IExcelXmlSheetConfigMerges, IExcelXmlSheetConfigMerge, IExcelXmlSheetborderInfoCellValue, IExcelXmlSheetborderInfoCellValueStyle, IExcelXmlSheetborderInfoCellForImp, IExcelXmlSheetRowAndColumnLen, IExcelXmlSheetRowAndColumnHidden, IExcelXmlSheetSelection, IExcelXmlSheetFrozen, IExcelXmlSheetChart, IExcelXmlSheetPivotTable, IExcelXmlSheetConditionFormat, IExcelXmlSheetCalcChain, IExcelXmlInlineString, IExcelXmlImage, IExcelXmlImageBorder, IExcelXmlImageCrop, IExcelXmlImageDefault, IExcelXmlImages, IExcelXmlSheetHyperlink, IExcelXmlSheetDataVerification, IExcelXmlSheetComment, IWorkBookInfo, IExcelXmlCharts, IExcelXmlChart, IExcelXmlChartContext, IExcelXmlChartStyle, IExcelXmlChartImage, IExcelXmlChartImageData } from "./types";
 import type { ExcelXmlConditionFormat } from './ExcelXmlCondition'
 import { IDefinedNames } from "./ExcelXmlDefineName";
@@ -57,6 +58,11 @@ export class ExcelXmlSheetBase implements IExcelXmlSheet {
     filter!: ExcelXmlFilterFormat;
 
     comments?: IExcelXmlSheetComment[];
+
+    pageMargins?: IPageMargins;
+    pageSetup?: IPageSetup;
+    rowBreaks?: number[];
+    colBreaks?: number[];
 
 }
 

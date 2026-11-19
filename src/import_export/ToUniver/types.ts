@@ -1,4 +1,5 @@
 import { ChartTypeBits } from '../common/constant';
+import type { IPageMargins, IPageSetup } from '../../plugin/page-layout/types';
 
 /**
  * 单元格样式中间值（仅在解析过程中使用，最终会转成 Univer IStyleData）
@@ -358,6 +359,15 @@ export interface IExcelXmlSheet {
     filter: ExcelXmlFilterFormat
 
     comments?: IExcelXmlSheetComment[]; // Excel 传统批注
+
+    /** Excel pageMargins，单位英寸 */
+    pageMargins?: IPageMargins;
+    /** Excel pageSetup：纸张方向/大小 */
+    pageSetup?: IPageSetup;
+    /** 水平分页符：新页起始行的 0-based 行索引 */
+    rowBreaks?: number[];
+    /** 垂直分页符：新页起始列的 0-based 列索引 */
+    colBreaks?: number[];
 }
 
 //excelXmlSheet general selection

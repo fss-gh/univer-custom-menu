@@ -1,6 +1,6 @@
 import { Workbook, Worksheet, WorksheetViewCommon, WorksheetViewFrozen } from "@zwight/exceljs";
 import { convertSheetIdToName, heightConvert, hex2argb, wdithConvert } from "./util";
-import { PRINT_AREA_PLUGIN_NAME } from "../../plugin/print-area/types";
+import { PAGE_LAYOUT_PLUGIN_NAME } from "../../plugin/page-layout/types";
 import { cellStyle, fontConvert } from "./CellStyle";
 import { getImageExtension, jsonParse, removeEmptyAttr } from "../common/method";
 import { Resource } from "./Resource";
@@ -64,7 +64,7 @@ export function ExcelWorkSheet(workbook: Workbook, snapshot: any) {
         setRows(worksheet, sheet.rowData, defaultRowHeightR)
         setCell(worksheet, sheet, styles, snapshot, workbook);
         setMerges(worksheet, mergeData);
-        setPrintArea(worksheet, id, resources);
+        setPageLayout(worksheet, id, resources);
 
         new Resource(id, workbook, worksheet, resources);
     });
@@ -78,17 +78,41 @@ function setMerges(worksheet: Worksheet, mergeData: any[]) {
 }
 
 /**
- * 从 SHEET_PRINT_AREA_PLUGIN 资源写回 Excel 的 pageSetup.printArea。
- * ExcelJS 会在写文件时自动把 printArea 转成 _xlnm.Print_Area 定义名称。
+ * 从 SHEET_PAGE_LAYOUT_PLUGIN 资源写回 Excel 的页面布局：
+ * - 打印区域 -> pageSetup.printArea（ExcelJS 会转成 _xlnm.Print_Area 定义名称）
+ * - 页边距 -> pageMargins
+ * - 纸张方向/大小 -> pageSetup
+ * - 水平分页符 -> rowBreaks（ExcelJS 不支持 colBreaks，列分页符在 sanitizeExportedXml 中注入）
  */
-function setPrintArea(worksheet: Worksheet, sheetId: string, resources: any[]) {
-    const printAreas = jsonParse(resources.find((d: any) => d.name === PRINT_AREA_PLUGIN_NAME)?.data);
-    const sheetPrintArea = printAreas?.[sheetId];
-    if (!sheetPrintArea?.ranges?.length) return;
+function setPageLayout(worksheet: Worksheet, sheetId: string, resources: any[]) {
+    const pageLayouts = jsonParse(resources.find((d: any) => d.name === PAGE_LAYOUT_PLUGIN_NAME)?.data);
+    const layout = pageLayouts?.[sheetId];
+    if (!layout) return;
 
-    worksheet.pageSetup.printArea = sheetPrintArea.ranges
-        .map((range: any) => `${toExcelAddress(range.startRow, range.startColumn)}:${toExcelAddress(range.endRow, range.endColumn)}`)
-        .join('&&');
+    if (layout.printArea?.length) {
+        worksheet.pageSetup.printArea = layout.printArea
+            .map((range: any) => `${toExcelAddress(range.startRow, range.startColumn)}:${toExcelAddress(range.endRow, range.endColumn)}`)
+            .join('&&');
+    }
+
+    if (layout.margins) {
+        worksheet.pageSetup.margins = { ...layout.margins };
+    }
+
+    if (layout.pageSetup) {
+        worksheet.pageSetup.orientation = layout.pageSetup.orientation;
+        worksheet.pageSetup.paperSize = layout.pageSetup.paperSize as any;
+    }
+
+    if (layout.rowBreaks?.length) {
+        (worksheet as any).rowBreaks = layout.rowBreaks.map((id: number) => ({
+            // Univer 存 0-based 起始行，Excel brk id 从 1 开始
+            id: id + 1,
+            max: 16383,
+            min: 0,
+            man: 1,
+        }));
+    }
 }
 
 function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any, workbook: Workbook) {

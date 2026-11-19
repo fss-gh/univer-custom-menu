@@ -11,7 +11,8 @@ import {
 import { HyperLink, UniverSheet } from './UniverSheet';
 // import { ISheetDrawing, SheetDrawingAnchorType } from '@univerjs/sheets-drawing';
 import { handleStyle } from './utils';
-import { PRINT_AREA_PLUGIN_NAME } from '../../plugin/print-area/types';
+import { PAGE_LAYOUT_PLUGIN_NAME } from '../../plugin/page-layout/types';
+import type { IPageLayoutResourceData } from '../../plugin/page-layout/types';
 import { generateRandomId } from '../common/method';
 import { IExcelXmlSheet, IExcelXmlFile, IWorkBookInfo } from './types';
 import { ImageSourceType } from './ExcelXmlInterface';
@@ -62,7 +63,8 @@ export class UniverWorkBook implements IWorkbookData {
         this.handleFilter(sheetsObj);
         this.handleNotes(sheetsObj);
         this.sheetOrder = order;
-        this.handlePrintArea(workbook);
+        const printAreas = this.handlePrintArea(workbook);
+        this.handlePageLayout(sheetsObj, printAreas);
 
         this.sheets = workSheets;
     }
@@ -251,11 +253,11 @@ export class UniverWorkBook implements IWorkbookData {
         });
     };
     /**
-     * 把 Excel 的 _xlnm.Print_Area 定义名称转换为打印区域插件资源。
+     * 把 Excel 的 _xlnm.Print_Area 定义名称转换为打印区域数据。
      * Excel 的 localSheetId 是工作表索引，需要映射到 Univer 随机生成的 sheet id。
      */
-    private handlePrintArea = (workbook: IWorkBookInfo) => {
-        const printAreas: Record<string, { ranges: IRange[] }> = {};
+    private handlePrintArea = (workbook: IWorkBookInfo): Record<string, IRange[]> => {
+        const printAreas: Record<string, IRange[]> = {};
         const definedNames = workbook.defineNames;
 
         if (definedNames) {
@@ -271,15 +273,42 @@ export class UniverWorkBook implements IWorkbookData {
                 if (!ranges.length) continue;
 
                 if (!printAreas[sheetId]) {
-                    printAreas[sheetId] = { ranges: [] };
+                    printAreas[sheetId] = [];
                 }
-                printAreas[sheetId].ranges.push(...ranges);
+                printAreas[sheetId].push(...ranges);
             }
         }
 
+        return printAreas;
+    };
+
+    /**
+     * 组装页面布局资源：打印区域 + 页边距 + 纸张方向/大小 + 分页符。
+     */
+    private handlePageLayout = (
+        sheetsObj: ExcelXmlSheetObj,
+        printAreas: Record<string, IRange[]>
+    ) => {
+        const layouts: IPageLayoutResourceData = {};
+        for (const sheetId in printAreas) {
+            layouts[sheetId] = { printArea: printAreas[sheetId] };
+        }
+
+        Object.entries(sheetsObj).forEach(([sheetId, sheet]) => {
+            const data = layouts[sheetId] ?? {};
+            if (sheet.pageMargins) data.margins = sheet.pageMargins;
+            if (sheet.pageSetup) data.pageSetup = sheet.pageSetup;
+            if (sheet.rowBreaks?.length) data.rowBreaks = sheet.rowBreaks;
+            if (sheet.colBreaks?.length) data.colBreaks = sheet.colBreaks;
+
+            if (data.printArea || data.margins || data.pageSetup || data.rowBreaks || data.colBreaks) {
+                layouts[sheetId] = data;
+            }
+        });
+
         this.resources?.push({
-            name: PRINT_AREA_PLUGIN_NAME,
-            data: JSON.stringify(printAreas),
+            name: PAGE_LAYOUT_PLUGIN_NAME,
+            data: JSON.stringify(layouts),
         });
     };
 

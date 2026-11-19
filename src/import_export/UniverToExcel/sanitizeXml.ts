@@ -1,4 +1,5 @@
 import JSZip from "@progress/jszip-esm";
+import { PAGE_LAYOUT_PLUGIN_NAME } from "../../plugin/page-layout/types";
 
 /**
  * 对 ExcelJS 生成的 xlsx buffer 做一次后处理，避免 Excel 打开时提示“文件已损坏/修复”：
@@ -76,7 +77,125 @@ function normalizeX14DataBar(xml: string): string {
     return result;
 }
 
-export async function sanitizeExportedXml(buffer: ArrayBuffer): Promise<ArrayBuffer> {
+function decodeXmlEntities(value: string): string {
+    return value
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&");
+}
+
+/**
+ * 建立 “工作表名称 -> xl/worksheets/sheetN.xml” 映射。
+ * ExcelJS 写出的 workbook.xml / workbook.xml.rels 结构固定，直接解析即可；
+ * 解析失败时按 snapshot.sheetOrder 回退到 sheetN.xml。
+ */
+async function getSheetPathMap(zip: JSZip, snapshot: any): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+
+    try {
+        const workbookFile = zip.file("xl/workbook.xml");
+        const relsFile = zip.file("xl/_rels/workbook.xml.rels");
+        if (workbookFile && relsFile) {
+            const workbookXml = await workbookFile.async("string");
+            const relsXml = await relsFile.async("string");
+
+            const relMap = new Map<string, string>();
+            for (const tag of relsXml.match(/<Relationship\b[^>]*\/?>/g) ?? []) {
+                const id = tag.match(/\bId="([^"]*)"/)?.[1];
+                const target = tag.match(/\bTarget="([^"]*)"/)?.[1];
+                if (id && target) {
+                    relMap.set(id, target.startsWith("/") ? target.slice(1) : `xl/${target}`);
+                }
+            }
+
+            for (const tag of workbookXml.match(/<sheet\b[^>]*\/?>/g) ?? []) {
+                const name = decodeXmlEntities(tag.match(/\bname="([^"]*)"/)?.[1] ?? "");
+                const relId = tag.match(/\br:id="([^"]*)"/)?.[1];
+                const path = relId ? relMap.get(relId) : undefined;
+                if (name && path) {
+                    map.set(name, path);
+                }
+            }
+        }
+    } catch {
+        // 忽略解析失败，使用 sheetOrder 回退
+    }
+
+    const sheetOrder: string[] = snapshot?.sheetOrder ?? [];
+    sheetOrder.forEach((sheetId, index) => {
+        const name = snapshot?.sheets?.[sheetId]?.name;
+        if (name && !map.has(name)) {
+            map.set(name, `xl/worksheets/sheet${index + 1}.xml`);
+        }
+    });
+
+    return map;
+}
+
+/** 从页面布局资源中提取每个工作表的列分页符 */
+function getColBreaksBySheetName(snapshot: any): Map<string, number[]> {
+    const result = new Map<string, number[]>();
+    const resource = (snapshot?.resources ?? []).find(
+        (item: any) => item.name === PAGE_LAYOUT_PLUGIN_NAME
+    );
+    if (!resource?.data) {
+        return result;
+    }
+
+    let layouts: Record<string, { colBreaks?: number[] }>;
+    try {
+        layouts = JSON.parse(resource.data);
+    } catch {
+        return result;
+    }
+
+    Object.keys(layouts).forEach((sheetId) => {
+        const name = snapshot?.sheets?.[sheetId]?.name;
+        const breaks = layouts[sheetId]?.colBreaks;
+        if (name && Array.isArray(breaks) && breaks.length) {
+            result.set(name, breaks);
+        }
+    });
+
+    return result;
+}
+
+/**
+ * ExcelJS 不支持 colBreaks，这里把列分页符插入到 worksheet XML。
+ * CT_Worksheet 中 colBreaks 必须位于 rowBreaks 之后、drawing 等元素之前。
+ */
+function injectColBreaks(xml: string, breaks: number[]): string {
+    const indexes = [...new Set(breaks)]
+        .filter((index) => Number.isInteger(index) && index > 0)
+        .sort((a, b) => a - b);
+    if (!indexes.length) {
+        return xml;
+    }
+
+    const colBreaksXml = `<colBreaks count="${indexes.length}" manualBreakCount="${indexes.length}">${indexes
+        .map((index) => `<brk id="${index + 1}" max="1048575" man="1"/>`)
+        .join("")}</colBreaks>`;
+
+    const existing = /<colBreaks\b[^>]*>[\s\S]*?<\/colBreaks>/;
+    if (existing.test(xml)) {
+        return xml.replace(existing, colBreaksXml);
+    }
+
+    if (/<\/rowBreaks>/.test(xml)) {
+        return xml.replace(/<\/rowBreaks>/, `</rowBreaks>${colBreaksXml}`);
+    }
+
+    const anchor = /<(drawing|legacyDrawing|picture|oleObjects|controls|webPublishItems|tableParts|extLst)\b/;
+    if (anchor.test(xml)) {
+        return xml.replace(anchor, `${colBreaksXml}<$1`);
+    }
+
+    return xml.replace(/<\/worksheet>/, `${colBreaksXml}</worksheet>`);
+}
+
+export async function sanitizeExportedXml(buffer: ArrayBuffer, snapshot?: any): Promise<ArrayBuffer> {
     const zip = new JSZip();
     await zip.loadAsync(buffer);
 
@@ -103,10 +222,27 @@ export async function sanitizeExportedXml(buffer: ArrayBuffer): Promise<ArrayBuf
     const sheetPaths = Object.keys(zip.files).filter((path) =>
         /^xl\/worksheets\/sheet\d+\.xml$/.test(path) && !zip.files[path].dir
     );
+
+    // 3. 注入 ExcelJS 不支持的列分页符
+    const colBreaksBySheetName = getColBreaksBySheetName(snapshot);
+    const colBreaksBySheetPath = new Map<string, number[]>();
+    if (colBreaksBySheetName.size) {
+        const sheetPathMap = await getSheetPathMap(zip, snapshot);
+        colBreaksBySheetName.forEach((breaks, name) => {
+            const path = sheetPathMap.get(name);
+            if (path) {
+                colBreaksBySheetPath.set(path, breaks);
+            }
+        });
+    }
+
     for (const path of sheetPaths) {
         const sheetFile = zip.files[path];
         const xml = await sheetFile.async("string");
-        const normalized = moveX14ConditionalFormattingsToEnd(normalizeX14DataBar(xml));
+        const normalized = injectColBreaks(
+            moveX14ConditionalFormattingsToEnd(normalizeX14DataBar(xml)),
+            colBreaksBySheetPath.get(path) ?? []
+        );
         if (normalized !== xml) {
             zip.file(path, normalized);
             changed = true;

@@ -37,19 +37,32 @@ export type {
     ISuperSubscriptPluginConfig,
 } from './plugin/super-subscript/types';
 
-/** 打印区域插件（导入显示蓝色虚线边界 + 设置/清除 + JSON 保存） */
-export { UniverSheetsPrintAreaPlugin } from './plugin/print-area/plugin';
+/** 页面布局插件（打印区域/页边距/分页符/纸张方向与大小 + 导入导出 + JSON 保存） */
+export { UniverSheetsPageLayoutPlugin } from './plugin/page-layout/plugin';
 export {
+    ADD_PAGE_BREAK_COMMAND_ID,
+    CLEAR_PAGE_BREAKS_COMMAND_ID,
     CLEAR_PRINT_AREA_COMMAND_ID,
-    PRINT_AREA_PLUGIN_CONFIG,
-    PRINT_AREA_PLUGIN_NAME,
+    DEFAULT_PAGE_MARGINS,
+    DEFAULT_PAGE_SETUP,
+    OPEN_PAGE_LAYOUT_PANEL_COMMAND_ID,
+    PAGE_LAYOUT_PANEL_COMPONENT,
+    PAGE_LAYOUT_PANEL_ID,
+    PAGE_LAYOUT_PLUGIN_CONFIG,
+    PAGE_LAYOUT_PLUGIN_NAME,
+    REMOVE_PAGE_BREAK_COMMAND_ID,
     SET_PRINT_AREA_COMMAND_ID,
-} from './plugin/print-area/types';
+    cmToInch,
+    inchToCm,
+} from './plugin/page-layout/types';
 export type {
-    IPrintAreaPluginConfig,
-    IPrintAreaResourceData,
-    ISheetPrintAreaData,
-} from './plugin/print-area/types';
+    IPageLayoutPluginConfig,
+    IPageLayoutResourceData,
+    IPageMargins,
+    IPageSetup,
+    ISheetPageLayoutData,
+    PageOrientation,
+} from './plugin/page-layout/types';
 
 /** Excel 转换工具（需要时可直接使用） */
 export { ExcelXml } from './import_export';

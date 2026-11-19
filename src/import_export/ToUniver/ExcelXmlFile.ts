@@ -584,7 +584,23 @@ export class ExcelXmlFile extends ExcelXmlFileBase {
             if (sheet.comments != null && sheet.comments.length) {
                 sheetout.comments = sheet.comments;
             }
-            
+
+            if (sheet.pageMargins != null) {
+                sheetout.pageMargins = sheet.pageMargins;
+            }
+
+            if (sheet.pageSetup != null) {
+                sheetout.pageSetup = sheet.pageSetup;
+            }
+
+            if (sheet.rowBreaks != null && sheet.rowBreaks.length) {
+                sheetout.rowBreaks = sheet.rowBreaks;
+            }
+
+            if (sheet.colBreaks != null && sheet.colBreaks.length) {
+                sheetout.colBreaks = sheet.colBreaks;
+            }
+
             ExcelXmlOutPutFile.sheets.push(sheetout);
         });
 

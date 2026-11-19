@@ -221,6 +221,8 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
         const filter = new ExcelXmlFilter(this.readXml, this.sheetFile)
         if (filter.ref) this.filter = filter;
 
+        this.parsePageLayout();
+
         // dataVerification config
         this.dataVerification = this.generateConfigDataValidations();
         this.dataVerificationList = this.generateConfigDataValidationsList();
@@ -260,6 +262,50 @@ export class ExcelXmlSheet extends ExcelXmlSheetBase {
             this.getImageBaseInfo(drawingFile, drawingRelsFile)
         }
     }
+
+    /** 解析 pageMargins / pageSetup / rowBreaks / colBreaks */
+    private parsePageLayout = (): void => {
+        const toNumber = (value: string | null, fallback: number): number => {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        };
+
+        const pageMarginsEle = this.readXml.getElementsByTagName("pageMargins", this.sheetFile);
+        const marginAttr = pageMarginsEle?.[0]?.attributeList;
+        if (marginAttr) {
+            this.pageMargins = {
+                top: toNumber(getXmlAttibute(marginAttr, "top", "0.75"), 0.75),
+                bottom: toNumber(getXmlAttibute(marginAttr, "bottom", "0.75"), 0.75),
+                left: toNumber(getXmlAttibute(marginAttr, "left", "0.7"), 0.7),
+                right: toNumber(getXmlAttibute(marginAttr, "right", "0.7"), 0.7),
+                header: toNumber(getXmlAttibute(marginAttr, "header", "0.3"), 0.3),
+                footer: toNumber(getXmlAttibute(marginAttr, "footer", "0.3"), 0.3),
+            };
+        }
+
+        const pageSetupEle = this.readXml.getElementsByTagName("pageSetup", this.sheetFile);
+        const setupAttr = pageSetupEle?.[0]?.attributeList;
+        if (setupAttr) {
+            this.pageSetup = {
+                orientation:
+                    getXmlAttibute(setupAttr, "orientation", "portrait") === "landscape"
+                        ? "landscape"
+                        : "portrait",
+                paperSize: toNumber(getXmlAttibute(setupAttr, "paperSize", "9"), 9),
+            };
+        }
+
+        const parseBreaks = (tag: string): number[] =>
+            this.readXml
+                .getElementsByTagName(tag, this.sheetFile)
+                .map((ele) => toNumber(ele.attributeList?.id ?? null, 0))
+                .filter((index) => index > 0)
+                // Excel brk id 从 1 开始（分页发生在该行/列之前），Univer 存 0-based 起始索引
+                .map((index) => index - 1);
+
+        this.rowBreaks = parseBreaks("rowBreaks/brk");
+        this.colBreaks = parseBreaks("colBreaks/brk");
+    };
 
     private getImageBaseInfo = (drawingFile: string, drawingRelsFile: string): any => {
         let twoCellAnchors = this.readXml.getElementsByTagName("xdr:twoCellAnchor", drawingFile);

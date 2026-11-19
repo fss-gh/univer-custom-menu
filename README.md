@@ -1,15 +1,15 @@
 # univer-custom-menu
 
-Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出**、**上下标（Superscript / Subscript）** 和 **打印区域（Print Area）** 功能，并可以直接在 Vue / React 项目中使用。
+Univer 自定义菜单插件，目前提供 **Excel 导入 / 导出**、**上下标（Superscript / Subscript）** 和 **页面布局（Page Layout）** 功能，并可以直接在 Vue / React 项目中使用。
 
 ## 功能
 
 - 导入菜单：选择 Excel 文件后，解析并直接在 Univer 中创建工作表
 - 导出菜单：将当前 Univer 工作簿导出为 Excel / CSV
 - 支持条件格式、数据验证、筛选、冻结、超链接、传统批注、单元格图片/浮动图片等常见 Excel 特性
-- 图表：支持从 Excel 导入解析到 Univer；由于 Univer 1.5 暂无原生图表/透视表插件，导出时暂不写回图表/透视表 XML
+- 图表/透视表：暂不支持导入与导出
 - 上下标插件：在工具栏中同时提供上标、下标两个按钮
-- 打印区域插件：导入 Excel 的 `_xlnm.Print_Area` 后以蓝色虚线显示边界，支持在工具栏中设置/清除，并随 Univer 快照以 JSON 形式保存
+- 页面布局插件：导入/导出打印区域、页边距、分页符、纸张方向与纸张大小，支持在工具栏打开侧边栏进行设置，画布上以虚线显示打印区域和分页符，并随 Univer 快照以 JSON 形式保存
 - 不依赖 `@univerjs/vite-plugin`，插件通过 `Plugin` 基类手动注册
 
 ## 目录结构
@@ -24,7 +24,7 @@ src/
 └── plugin/
     ├── import-export/     # 导入/导出菜单插件
     ├── super-subscript/   # 上下标插件
-    └── print-area/        # 打印区域插件（蓝色虚线边界 + 设置/清除 + JSON 保存）
+    └── page-layout/       # 页面布局插件（打印区域/页边距/分页符/纸张方向与大小）
 ```
 
 > 说明：代码现在直接从 Excel XML 解析为 `IExcelXmlFile`，再由 `UniverWorkBook` 生成 `IWorkbookData`，不再经过额外的中间层。
@@ -136,24 +136,28 @@ univer.registerPlugin(UniverSheetsSuperSubscriptPlugin, {
 });
 ```
 
-## 注册打印区域插件
+## 注册页面布局插件
 
 ```ts
-import { UniverSheetsPrintAreaPlugin } from 'univer-custom-menu';
+import { UniverSheetsPageLayoutPlugin } from 'univer-custom-menu';
 
-univer.registerPlugin(UniverSheetsPrintAreaPlugin, {
-  // 可选：边界颜色与线宽，默认蓝色虚线
+univer.registerPlugin(UniverSheetsPageLayoutPlugin, {
+  // 可选：打印区域边界颜色与线宽，默认蓝色虚线
   stroke: '#2F6BFF',
   strokeWidth: 2,
-  // showBorder: false, // 只保存数据，不显示边界
+  // 可选：分页符颜色
+  breakStroke: '#2F6BFF',
+  // showBorder: false,       // 只保存数据，不显示打印区域边界
+  // showPageBreaks: false,   // 不显示分页符
 });
 ```
 
 使用方式：
 
-1. 先通过“导入”菜单打开带打印区域的 Excel 文件，Univer 会自动把 `_xlnm.Print_Area` 解析为 `SHEET_PRINT_AREA_PLUGIN` 资源，并在表格画布上显示蓝色虚线边界。
-2. 选中任意区域后点击工具栏「设置打印区域」可设置/替换当前工作表的打印区域；点击「清除打印区域」可移除。
-3. 打印区域数据会随 `activeWorkbook.save()` 返回的 JSON 快照保存到 `resources` 中，导出 Excel 时也会重新写回 `pageSetup.printArea`。
+1. 通过“导入”菜单打开 Excel 文件时，插件会自动解析打印区域、`pageMargins`、`pageSetup`（纸张方向/大小）以及 `rowBreaks`/`colBreaks`，并保存为 `SHEET_PAGE_LAYOUT_PLUGIN` 资源。
+2. 点击工具栏「页面布局」打开侧边栏，可设置/清除打印区域、调整上/下/左/右/页眉/页脚页边距（界面单位为厘米）、切换纸张方向与大小，并在选中行/列处添加、删除或清空分页符。
+3. 画布上会显示打印区域边框和分页符虚线。
+4. 页面布局数据会随 `activeWorkbook.save()` 返回的 JSON 快照保存到 `resources` 中；导出 Excel 时会写回 `pageSetup.printArea`、`pageMargins`、`pageSetup.orientation/paperSize`、`rowBreaks` 和 `colBreaks`。
 
 数据 JSON 示例：
 
@@ -161,12 +165,14 @@ univer.registerPlugin(UniverSheetsPrintAreaPlugin, {
 {
   "resources": [
     {
-      "name": "SHEET_PRINT_AREA_PLUGIN",
-      "data": "{\"<sheetId>\":{\"ranges\":[{\"startRow\":0,\"startColumn\":0,\"endRow\":9,\"endColumn\":3}]}}"
+      "name": "SHEET_PAGE_LAYOUT_PLUGIN",
+      "data": "{\"<sheetId>\":{\"printArea\":[{\"startRow\":0,\"startColumn\":0,\"endRow\":9,\"endColumn\":3}],\"margins\":{\"top\":0.75,\"bottom\":0.75,\"left\":0.7,\"right\":0.7,\"header\":0.3,\"footer\":0.3},\"pageSetup\":{\"orientation\":\"portrait\",\"paperSize\":9},\"rowBreaks\":[19],\"colBreaks\":[3]}}"
     }
   ]
 }
 ```
+
+> 页边距在资源中按 Excel 原生单位（英寸）保存，侧边栏展示与输入时自动换算为厘米；`rowBreaks`/`colBreaks` 保存 0 基的起始行/列索引。
 
 ## 直接使用转换工具
 

@@ -134,7 +134,7 @@ export class ExcelXml {
             const filteredBuffer = await injectAutoFilterColumns(buffer, snapshot);
             // ExcelJS 会在 workbook.xml.rels 中写入一个即使没有 cell image 也存在的
             // 悬空 cellimages.xml 关系，这里统一清理，避免 Excel 打开报“文件已损坏/修复”。
-            const finalBuffer = await sanitizeExportedXml(filteredBuffer);
+            const finalBuffer = await sanitizeExportedXml(filteredBuffer, snapshot);
             // console.log(3, new Date())
             if (getBuffer) {
                 success?.(finalBuffer);
