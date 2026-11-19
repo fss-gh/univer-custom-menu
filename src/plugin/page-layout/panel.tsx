@@ -18,6 +18,10 @@ import {
     inchToCm,
     cmToInch,
 } from './types';
+import { PageLayoutPrintAreaIcon } from '../components/item-icon/PageLayoutPrintAreaIcon';
+import { PageLayoutMarginsIcon } from '../components/item-icon/PageLayoutMarginsIcon';
+import { PageLayoutPaperIcon } from '../components/item-icon/PageLayoutPaperIcon';
+import { PageLayoutPageBreaksIcon } from '../components/item-icon/PageLayoutPageBreaksIcon';
 
 const PAPER_SIZES = [
     { value: '9', label: 'A4' },
@@ -62,9 +66,33 @@ const sectionStyle: React.CSSProperties = {
 };
 
 const sectionTitleStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 20,
     fontSize: 13,
     fontWeight: 600,
+    lineHeight: '16px',
 };
+
+const sectionIconStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: '0 0 16px',
+    width: 16,
+    height: 16,
+    color: '#646473',
+};
+
+function SectionTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+    return (
+        <div style={sectionTitleStyle}>
+            <span style={sectionIconStyle}>{icon}</span>
+            <span>{children}</span>
+        </div>
+    );
+}
 
 const rowStyle: React.CSSProperties = {
     display: 'flex',
@@ -139,7 +167,7 @@ export function PageLayoutPanel() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '12px 16px 24px' }}>
             <section style={sectionStyle}>
-                <div style={sectionTitleStyle}>{t('customMenu.pageLayoutPrintArea')}</div>
+                <SectionTitle icon={<PageLayoutPrintAreaIcon />}>{t('customMenu.pageLayoutPrintArea')}</SectionTitle>
                 <div style={hintStyle}>
                     {printArea.length
                         ? printArea.map((range) => rangeToA1(range)).join(', ')
@@ -165,7 +193,7 @@ export function PageLayoutPanel() {
             </section>
 
             <section style={sectionStyle}>
-                <div style={sectionTitleStyle}>{t('customMenu.pageLayoutMargins')}</div>
+                <SectionTitle icon={<PageLayoutMarginsIcon />}>{t('customMenu.pageLayoutMargins')}</SectionTitle>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     {MARGIN_FIELDS.map((field) => (
                         <label
@@ -192,7 +220,7 @@ export function PageLayoutPanel() {
             </section>
 
             <section style={sectionStyle}>
-                <div style={sectionTitleStyle}>{t('customMenu.pageLayoutPaper')}</div>
+                <SectionTitle icon={<PageLayoutPaperIcon />}>{t('customMenu.pageLayoutPaper')}</SectionTitle>
                 <FormLayout label={t('customMenu.pageLayoutOrientation')}>
                     <Select
                         value={pageSetup.orientation}
@@ -213,7 +241,7 @@ export function PageLayoutPanel() {
             </section>
 
             <section style={sectionStyle}>
-                <div style={sectionTitleStyle}>{t('customMenu.pageLayoutPageBreaks')}</div>
+                <SectionTitle icon={<PageLayoutPageBreaksIcon />}>{t('customMenu.pageLayoutPageBreaks')}</SectionTitle>
                 <div style={rowStyle}>
                     <Button size="small" disabled={!selection?.range} onClick={() => addBreak('row')}>
                         {t('customMenu.pageLayoutAddRowBreak')}
